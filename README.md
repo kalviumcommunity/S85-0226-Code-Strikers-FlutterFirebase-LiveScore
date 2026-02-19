@@ -182,7 +182,7 @@ lib/
 # 👨‍💻 Developers
 
 * **Pranav** — Backend
-* **Sejal Jaiswal** — Frontend
+* **Sejal Jaswal** — Frontend
 * **Tanmya** — DevOps
 
 ---
