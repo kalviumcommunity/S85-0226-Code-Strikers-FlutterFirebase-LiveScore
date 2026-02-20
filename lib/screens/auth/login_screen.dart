@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/auth_textfield.dart';
-import '../../../../services/auth_service.dart';
-import 'package:livescore/screens/auth/home/home_screen.dart';
+import '../../../widgets/auth_textfield.dart';
+import '../../../widgets/auth_segmented.dart';
+import '../../../widgets/auth_button.dart';
+import '../../../theme/auth_theme.dart';
+import '../../../theme/theme_controller.dart';
+import '../../../services/auth_service.dart';
 import 'signup_screen.dart';
+import 'home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final ThemeController themeController;
+
+  const LoginScreen({super.key, required this.themeController});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -14,13 +20,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
   bool loading = false;
 
   Future<void> handleLogin() async {
     setState(() => loading = true);
 
-    // 1️⃣ Firebase login
     final loginResult = await AuthService.login(
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
@@ -29,127 +33,152 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!loginResult["success"]) {
       setState(() => loading = false);
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loginResult["message"])),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(loginResult["message"])));
       return;
     }
 
-    final idToken = loginResult["idToken"];
-
-    // 2️⃣ Backend /auth/me
-    final meResult = await AuthService.getMe(idToken);
-
+    final meResult = await AuthService.getMe(loginResult["idToken"]);
     setState(() => loading = false);
 
     if (!mounted) return;
 
     if (meResult["success"]) {
-      final user = meResult["user"];
-
-      print("LOGIN USER → $user");
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomeScreen(user: user),
+          builder: (_) => HomeScreen(user: meResult["user"]),
         ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(meResult["message"])),
       );
     }
   }
 
+  Widget _header() {
+    final dark = AuthTheme.isDark(context);
+
+    return Row(
+      children: [
+        const Icon(Icons.bolt, color: AuthTheme.primary),
+        const SizedBox(width: 6),
+        Text(
+          "LIVESCORE",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: dark ? Colors.white : Colors.black,
+          ),
+        ),
+        const Spacer(),
+
+        /// 🌙☀️ TOGGLE
+        IconButton(
+          onPressed: widget.themeController.toggle,
+          icon: Icon(
+            dark ? Icons.dark_mode : Icons.light_mode,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final dark = AuthTheme.isDark(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Center(
+      backgroundColor: dark ? AuthTheme.darkBg : Colors.white,
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.emoji_events,
-                size: 70,
-                color: Colors.deepPurple,
+              const SizedBox(height: 12),
+              _header(),
+              const SizedBox(height: 26),
+
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color:
+                  dark ? AuthTheme.darkCard : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(Icons.emoji_events,
+                    color: AuthTheme.primary, size: 36),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                "LiveScore",
+              const SizedBox(height: 18),
+
+              Text(
+                "Welcome Champion",
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
+                  color: dark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 6),
+
+              Text(
+                "Sign in to track live matches and tournaments.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: dark ? Colors.white60 : Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 26),
+
+              AuthSegmented(
+                isLogin: true,
+                onLogin: () {},
+                onSignup: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SignupScreen(
+                        themeController: widget.themeController,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 26),
 
               AuthTextField(
                 controller: emailController,
                 hint: "Email",
+                icon: Icons.mail_outline,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               AuthTextField(
                 controller: passwordController,
                 hint: "Password",
+                icon: Icons.lock_outline,
                 obscure: true,
               ),
-              const SizedBox(height: 24),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: loading ? null : handleLogin,
-                  child: loading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                    "LOGIN",
-                    style: TextStyle(fontSize: 16),
+              const SizedBox(height: 10),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "Forgot password?",
+                  style: TextStyle(
+                    color: AuthTheme.primary,
+                    fontSize: 13,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Don't have an account? ",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "Sign up",
-                      style: TextStyle(
-                        color: Colors.deepPurple,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                ],
-              )
+              AuthButton(
+                text: "Login →",
+                loading: loading,
+                onTap: handleLogin,
+              ),
             ],
           ),
         ),
