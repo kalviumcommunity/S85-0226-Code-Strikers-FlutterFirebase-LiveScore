@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // 🔹 Spring Boot base URL
-  static const String baseUrl = "http://10.46.33.89:8080";
+  static const String baseUrl = "http://10.46.33.20:8080";
 
   // 🔹 Firebase API key
   static const String firebaseApiKey =
