@@ -6,7 +6,7 @@ import '../../../theme/auth_theme.dart';
 import '../../../theme/theme_controller.dart';
 import '../../../services/auth_service.dart';
 import 'signup_screen.dart';
-import 'home/home_screen.dart';
+import 'package:livescore/screens/auth/home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final ThemeController themeController;
@@ -22,6 +22,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   bool loading = false;
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> handleLogin() async {
     setState(() => loading = true);
 
@@ -33,12 +40,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!loginResult["success"]) {
       setState(() => loading = false);
       if (!mounted) return;
+
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(loginResult["message"])));
       return;
     }
 
-    final meResult = await AuthService.getMe(loginResult["idToken"]);
+    final meResult = await AuthService.getMe();
+
     setState(() => loading = false);
 
     if (!mounted) return;
@@ -50,6 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (_) => HomeScreen(user: meResult["user"]),
         ),
       );
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(meResult["message"])));
     }
   }
 
@@ -68,13 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const Spacer(),
-
-        /// 🌙☀️ TOGGLE
         IconButton(
           onPressed: widget.themeController.toggle,
-          icon: Icon(
-            dark ? Icons.dark_mode : Icons.light_mode,
-          ),
+          icon: Icon(dark ? Icons.dark_mode : Icons.light_mode),
         ),
       ],
     );
@@ -87,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: dark ? AuthTheme.darkBg : Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
@@ -99,12 +107,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color:
-                  dark ? AuthTheme.darkCard : Colors.grey.shade100,
+                  color: dark ? AuthTheme.darkCard : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(22),
                 ),
-                child: const Icon(Icons.emoji_events,
-                    color: AuthTheme.primary, size: 36),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AuthTheme.primary,
+                  size: 36,
+                ),
               ),
               const SizedBox(height: 18),
 
@@ -179,6 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 loading: loading,
                 onTap: handleLogin,
               ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
