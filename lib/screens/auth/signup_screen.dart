@@ -22,6 +22,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool loading = false;
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> handleSignup() async {
     setState(() => loading = true);
 
@@ -58,12 +66,9 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         const Spacer(),
-
         IconButton(
           onPressed: widget.themeController.toggle,
-          icon: Icon(
-            dark ? Icons.dark_mode : Icons.light_mode,
-          ),
+          icon: Icon(dark ? Icons.dark_mode : Icons.light_mode),
         ),
       ],
     );
@@ -76,7 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       backgroundColor: dark ? AuthTheme.darkBg : Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
@@ -88,8 +93,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color:
-                  dark ? AuthTheme.darkCard : Colors.grey.shade100,
+                  color: dark ? AuthTheme.darkCard : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Icon(Icons.person_add_alt_1,
@@ -153,6 +157,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 loading: loading,
                 onTap: handleSignup,
               ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
