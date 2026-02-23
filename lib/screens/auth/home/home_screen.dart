@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (user != null) ...[
               Text("Name: ${user["name"]}"),
               Text("Email: ${user["email"]}"),
-              Text("UID: ${user["uid"]}"),
+              Text("UID: ${user["id"]}"),
               Text("Role: ${user["role"]}"),
             ],
           ],
