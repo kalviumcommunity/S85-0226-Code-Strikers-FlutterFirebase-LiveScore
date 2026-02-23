@@ -14,9 +14,13 @@ class TeamDetailScreen extends StatefulWidget {
 
 class _TeamDetailScreenState extends State<TeamDetailScreen> {
   late Future<Team> future;
-
   bool requested = false;
   bool loadingRequest = true;
+
+  // Modern Palette
+  final Color primaryPurple = const Color(0xFF8B5CF6);
+  final Color accentCyan = const Color(0xFF22D3EE);
+  final Color cardBg = const Color(0xFF1E293B).withOpacity(0.4);
 
   @override
   void initState() {
@@ -35,20 +39,23 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     }
   }
 
+  String shortId(String? id) {
+    if (id == null || id.isEmpty || id == "None") return "None";
+    if (id.length <= 12) return id;
+    return "${id.substring(0, 8)}...${id.substring(id.length - 4)}";
+  }
+
   Future<void> sendRequest(String teamId) async {
     final ok = await TeamService.sendJoinRequest(teamId);
-
     if (!mounted) return;
-
     if (ok) {
       setState(() => requested = true);
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Join request sent")),
+        const SnackBar(content: Text("Join request sent successfully!")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Request failed")),
+        const SnackBar(content: Text("Failed to send request")),
       );
     }
   }
@@ -56,87 +63,125 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text("Team Details"),
+        title: const Text("Squad Profile", style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: FutureBuilder<Team>(
         future: future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: primaryPurple));
           }
-
           if (snapshot.hasError || snapshot.data == null) {
-            return const Center(
-              child: Text(
-                "Error loading team",
-                style: TextStyle(color: Colors.white),
-              ),
-            );
+            return const Center(child: Text("Error loading team", style: TextStyle(color: Colors.white70)));
           }
 
           final t = snapshot.data!;
-
-          /// ⭐ LEADER CHECK
           final isLeader = t.leaderId == AuthService.userId;
-
-          /// ⭐ TEAM FULL CHECK
           final isFull = t.currentPlayers >= t.maxPlayers;
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// TEAM CARD
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF111827),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _row("Sports", t.sports ?? "-"),
-                        _row("Leader", t.leaderId ?? "-"),
-                        _row("Status", t.status),
-                        _row("Players", "${t.currentPlayers}/${t.maxPlayers}"),
-                        _row("Tournament", t.tournamentId ?? "None"),
-                      ],
-                    ),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+
+                /// HERO AVATAR
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [primaryPurple, accentCyan]),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(color: primaryPurple.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+                    ],
                   ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    t.name[0].toUpperCase(),
+                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                  /// ⭐ JOIN BUTTON LOGIC
-                  if (!isLeader && AuthService.isUser())
-                    loadingRequest
-                        ? const Center(child: CircularProgressIndicator())
-                        : requested
-                        ? _disabledButton("Request Sent")
-                        : isFull
-                        ? _disabledButton("Team Full")
-                        : _joinButton(t.id),
-                ],
-              ),
+                Text(
+                  t.name,
+                  style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+                ),
+
+                Text(
+                  t.sports?.toUpperCase() ?? "GENERAL",
+                  style: TextStyle(color: accentCyan, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
+                ),
+
+                const SizedBox(height: 32),
+
+                /// STATS GRID
+                Row(
+                  children: [
+                    _infoBox("LEADER", shortId(t.leaderId), Icons.person_outline),
+                    const SizedBox(width: 16),
+                    _infoBox("STATUS", t.status, Icons.info_outline, color: t.status == "OPEN" ? Colors.greenAccent : Colors.redAccent),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _infoBox("CAPACITY", "${t.currentPlayers}/${t.maxPlayers}", Icons.groups_2_outlined),
+                    const SizedBox(width: 16),
+                    _infoBox("TOURNAMENT", shortId(t.tournamentId), Icons.emoji_events_outlined),
+                  ],
+                ),
+
+                const SizedBox(height: 40),
+
+                /// JOIN LOGIC
+                if (isLeader)
+                  _statusLabel("You are the leader of this squad")
+                else if (AuthService.isUser())
+                  loadingRequest
+                      ? CircularProgressIndicator(color: primaryPurple)
+                      : requested
+                      ? _disabledButton("REQUEST PENDING", Icons.hourglass_empty_rounded)
+                      : isFull
+                      ? _disabledButton("SQUAD FULL", Icons.block_flipped)
+                      : _joinButton(t.id),
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _infoBox(String label, String value, IconData icon, {Color? color}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color ?? accentCyan, size: 20),
+            const SizedBox(height: 12),
+            Text(label, style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }
@@ -145,63 +190,38 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     return GestureDetector(
       onTap: () => sendRequest(teamId),
       child: Container(
-        height: 52,
+        height: 60,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-          ),
-          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(colors: [primaryPurple, accentCyan]),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: primaryPurple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
         ),
         alignment: Alignment.center,
-        child: const Text(
-          "Request to Join",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: const Text("REQUEST TO JOIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
       ),
     );
   }
 
-  Widget _disabledButton(String text) {
+  Widget _disabledButton(String text, IconData icon) {
     return Container(
-      height: 52,
+      height: 60,
       decoration: BoxDecoration(
-        color: Colors.grey.shade700,
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white10),
       ),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _row(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            "$k: ",
-            style: const TextStyle(
-              color: Colors.white54,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              v,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
+          Icon(icon, color: Colors.white24, size: 20),
+          const SizedBox(width: 10),
+          Text(text, style: const TextStyle(color: Colors.white24, fontWeight: FontWeight.bold, letterSpacing: 1)),
         ],
       ),
     );
+  }
+
+  Widget _statusLabel(String text) {
+    return Text(text, style: const TextStyle(color: Colors.white38, fontSize: 14, fontStyle: FontStyle.italic));
   }
 }
