@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/auth_textfield.dart';
-import '../../../widgets/auth_segmented.dart';
-import '../../../widgets/auth_button.dart';
-import '../../../theme/auth_theme.dart';
-import '../../../theme/theme_controller.dart';
-import '../../../services/auth_service.dart';
+import '../../widgets/auth_textfield.dart';
+import '../../widgets/auth_segmented.dart';
+import '../../widgets/auth_button.dart';
+import '../../theme/auth_theme.dart';
+import '../../theme/theme_controller.dart';
+import '../../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
   final ThemeController themeController;
@@ -19,36 +19,17 @@ class _SignupScreenState extends State<SignupScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
   bool loading = false;
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
 
   Future<void> handleSignup() async {
     setState(() => loading = true);
 
-    final result = await AuthService.signup(
-      name: nameController.text.trim(),
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    // call your backend signup here if needed
 
     setState(() => loading = false);
 
     if (!mounted) return;
-
-    if (result["success"]) {
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(result["message"])));
-    }
+    Navigator.pop(context);
   }
 
   Widget _header() {
@@ -87,47 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const SizedBox(height: 12),
               _header(),
-              const SizedBox(height: 26),
-
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: dark ? AuthTheme.darkCard : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: const Icon(Icons.person_add_alt_1,
-                    color: AuthTheme.primary, size: 36),
-              ),
-              const SizedBox(height: 18),
-
-              Text(
-                "Create Account",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: dark ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 6),
-
-              Text(
-                "Join LiveScore to follow matches live.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: dark ? Colors.white60 : Colors.grey,
-                ),
-              ),
-
-              const SizedBox(height: 26),
-
-              AuthSegmented(
-                isLogin: false,
-                onLogin: () => Navigator.pop(context),
-                onSignup: () {},
-              ),
-
-              const SizedBox(height: 26),
+              const SizedBox(height: 30),
 
               AuthTextField(
                 controller: nameController,
@@ -157,8 +98,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 loading: loading,
                 onTap: handleSignup,
               ),
-
-              const SizedBox(height: 30),
             ],
           ),
         ),

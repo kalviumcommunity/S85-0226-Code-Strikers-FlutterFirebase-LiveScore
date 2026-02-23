@@ -4,7 +4,7 @@ import '../models/tournament.dart';
 import 'auth_service.dart';
 
 class TournamentService {
-  static const String baseUrl = "http://10.46.33.20:8080";
+  static const String baseUrl = "http://127.0.0.1:8080";
 
   static Future<List<Tournament>> fetchTournaments() async {
     print("TOKEN USED => ${AuthService.token}");
