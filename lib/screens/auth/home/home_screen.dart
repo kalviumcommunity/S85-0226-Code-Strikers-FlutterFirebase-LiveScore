@@ -21,9 +21,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       _homePage(),            // 0 HOME
       const TeamsScreen(),    // 1 TEAMS ✅
-      const Center(child: Text("Create")), // 2 CREATE
+      const Center(child: Text("Createe")), // 2 CREATE
       const EventsScreen(),   // 3 EVENTS
-      const Center(child: Text("Profile")), // 4 PROFILE
+      const Center(child: Text("Profille")), // 4 PROFILE
     ];
 
     return Scaffold(
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "LiveScore Home",
+              "Livescore Home",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
