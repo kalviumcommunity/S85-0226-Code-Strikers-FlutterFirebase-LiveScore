@@ -124,4 +124,17 @@ class TeamService {
 
     return response.statusCode == 200;
   }
+  static Future<List<Map<String, dynamic>>> getTeamMembers(String teamId) async {
+    final res = await http.get(
+      Uri.parse("$baseUrl/api/team/get/$teamId/members"),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(res.body));
+    }
+
+    throw Exception("Failed to load team members");
+  }
+
 }

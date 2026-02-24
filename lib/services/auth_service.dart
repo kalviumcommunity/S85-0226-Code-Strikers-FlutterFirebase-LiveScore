@@ -15,6 +15,7 @@ class AuthService {
   static String? token;
   static String? role;
   static String? userId;
+  static String? teamId;
 
   /* ================= LOGIN ================= */
 
@@ -72,6 +73,7 @@ class AuthService {
       /// ⭐⭐⭐ STORE ID + ROLE
       userId = user["id"]?.toString();
       role = user["role"]?.toString();
+     teamId = user["teamId"]?.toString();
 
       print("AUTH USER ID = $userId");
       print("AUTH ROLE = $role");
@@ -85,4 +87,12 @@ class AuthService {
     return role == "USER" || role == "ROLE_USER";
   }
   static bool isLeader() => role == "TEAM_LEADER";
+  static Map<String, String> get authHeader {
+    return {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    };
+  }
+  static bool isAdmin() =>
+      role == "ADMIN" || role == "ROLE_ADMIN";
 }

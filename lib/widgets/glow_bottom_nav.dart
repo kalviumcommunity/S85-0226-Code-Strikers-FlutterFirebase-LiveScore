@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class GlowBottomNav extends StatelessWidget {
   final int index;
   final Function(int) onTap;
+  final bool isAdmin;   // ✅ admin flag
 
   const GlowBottomNav({
     super.key,
     required this.index,
     required this.onTap,
+    required this.isAdmin,   // ✅ FIXED
   });
 
   // Colors matching the Teams UI
@@ -18,9 +20,9 @@ class GlowBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 90, // Slightly taller for better spacing
+      height: 90,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A), // Deep Navy
+        color: const Color(0xFF0F172A),
         border: Border(
           top: BorderSide(color: Colors.white.withOpacity(0.05), width: 1),
         ),
@@ -33,19 +35,20 @@ class GlowBottomNav extends StatelessWidget {
               _item(Icons.home_filled, "HOME", 0),
               _item(Icons.groups_rounded, "TEAMS", 1),
 
-              const SizedBox(width: 46), // Spacer for the floating center button
+              if (isAdmin) const SizedBox(width: 46),
 
               _item(Icons.emoji_events_outlined, "EVENTS", 3),
               _item(Icons.person_outline, "PROFILE", 4),
             ],
           ),
 
-          /// ✅ FLOATING CENTER BUTTON
-          Positioned(
-            top: 15,
-            left: MediaQuery.of(context).size.width / 2 - 27,
-            child: _centerButton(),
-          ),
+          /// ✅ FLOATING CENTER BUTTON (ADMIN ONLY)
+          if (isAdmin)
+            Positioned(
+              top: 15,
+              left: MediaQuery.of(context).size.width / 2 - 27,
+              child: _centerButton(),
+            ),
         ],
       ),
     );
@@ -87,7 +90,6 @@ class GlowBottomNav extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Active Indicator Line
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.only(bottom: 8),
