@@ -4,8 +4,13 @@ import '../../../services/auth_service.dart';
 
 class TournamentTeamsScreen extends StatefulWidget {
   final String tournamentId;
+  final String sport;
 
-  const TournamentTeamsScreen({super.key, required this.tournamentId});
+  const TournamentTeamsScreen({
+    super.key,
+    required this.tournamentId,
+    required this.sport,
+  });
 
   @override
   State<TournamentTeamsScreen> createState() => _TournamentTeamsScreenState();
@@ -32,7 +37,10 @@ class _TournamentTeamsScreenState extends State<TournamentTeamsScreen> {
       builder: (context) => Center(child: CircularProgressIndicator(color: accentCyan)),
     );
 
-    final ok = await TournamentService.shuffleFixtures(widget.tournamentId);
+    final ok = await TournamentService.shuffleFixtures(
+      tournamentId: widget.tournamentId,
+      sport: widget.sport,
+    );
 
     if (!mounted) return;
     Navigator.pop(context); // Close loading dialog

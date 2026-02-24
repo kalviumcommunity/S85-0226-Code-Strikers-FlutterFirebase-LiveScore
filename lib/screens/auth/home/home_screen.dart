@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/glow_bottom_nav.dart';
 import 'package:livescore/screens/auth/events/events_screen.dart';
+import 'package:livescore/screens/auth/teams/teams_screen.dart';
 
-import '../teams/teams_screen.dart';
+
+import '../admin/create_tournament_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
 
@@ -17,22 +20,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.user;
+    final bool isAdmin = user?["role"] == "ADMIN";
 
     final pages = [
       _homePage(),            // 0 HOME
-      const TeamsScreen(),    // 1 TEAMS ✅
-      const Center(child: Text("Create")), // 2 CREATE
+      const TeamsScreen(),    // 1 TEAMS
+      const SizedBox(),       // 2 CENTER (unused)
       const EventsScreen(),   // 3 EVENTS
       const Center(child: Text("Profile")), // 4 PROFILE
     ];
 
     return Scaffold(
-      extendBody: true, // ⭐ IMPORTANT
+      extendBody: true,
       body: pages[index],
 
       bottomNavigationBar: GlowBottomNav(
         index: index,
-        onTap: (i) => setState(() => index = i),
+        isAdmin: isAdmin,
+        onTap: (i) {
+          /// ✅ CENTER ADMIN BUTTON
+          if (i == 2) {
+            if (!isAdmin) return;
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CreateTournamentScreen(),
+              ),
+            );
+            return;
+          }
+
+          setState(() => index = i);
+        },
       ),
     );
   }
