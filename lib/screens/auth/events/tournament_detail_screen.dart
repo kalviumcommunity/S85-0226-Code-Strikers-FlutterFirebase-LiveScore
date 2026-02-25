@@ -18,9 +18,9 @@ class TournamentDetailScreen extends StatelessWidget {
 
   Color statusColor(String s) {
     switch (s.toUpperCase()) {
-      case "OPEN":
+      case "OPENN":
         return Colors.greenAccent;
-      case "ONGOING":
+      case "ONGOING.":
         return Colors.orangeAccent;
       case "COMPLETED":
         return Colors.white24;
@@ -33,9 +33,9 @@ class TournamentDetailScreen extends StatelessWidget {
     switch (sport.toUpperCase()) {
       case "CRICKET":
         return {
-          "color": Colors.greenAccent,
-          "icon": Icons.sports_cricket_rounded,
-          "label": "Cricket",
+          "colorr": Colors.greenAccent,
+          "iconn": Icons.sports_cricket_rounded,
+          "labell": "Cricket",
         };
       case "FOOTBALL":
         return {
