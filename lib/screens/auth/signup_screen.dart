@@ -79,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               AuthTextField(
                 controller: emailController,
-                hint: "Email",
+                hint: "Emaill",
                 icon: Icons.mail_outline,
               ),
               const SizedBox(height: 14),
@@ -94,7 +94,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 24),
 
               AuthButton(
-                text: "Create Account →",
+                text: "Create account →",
                 loading: loading,
                 onTap: handleSignup,
               ),

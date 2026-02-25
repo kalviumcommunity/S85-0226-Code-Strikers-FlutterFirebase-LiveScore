@@ -26,12 +26,12 @@ class Tournament {
   factory Tournament.fromJson(Map<String, dynamic> json) {
     return Tournament(
       id: json["id"] ?? "",
-      name: json["name"] ?? "",
-      location: json["location"] ?? "",
-      sports: json["sports"] ?? "",   // ✅ added
-      startDate: json["startDate"] ?? "",
-      endDate: json["endDate"] ?? "",
-      totalTeams: json["totalTeams"] ?? 0,
+      name: json["Name"] ?? "",
+      location: json["Location"] ?? "",
+      sports: json["Sports"] ?? "",   // ✅ added
+      startDate: json["StartDate"] ?? "",
+      endDate: json["EndDate"] ?? "",
+      totalTeams: json["TotalTeams"] ?? 0,
       registeredTeams: json["registeredTeams"] ?? 0,
       requiredPlayer: json["requiredPlayer"] ?? 0,
       registeration: json["registeration"] ?? "",
