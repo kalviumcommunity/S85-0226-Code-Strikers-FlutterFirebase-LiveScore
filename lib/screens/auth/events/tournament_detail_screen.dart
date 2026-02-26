@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:livescore/models/tournament.dart';
-import 'package:livescore/screens/auth/events/tournament_fixtures_screen.dart';
-import 'package:livescore/screens/auth/events/tournament_teams_screen.dart';
-
-import '../../../services/auth_service.dart';
-import '../../../services/tournament_service.dart';
-import 'admin_matches_screen.dart';
+import 'package:livescore/services/auth_service.dart';
+import 'package:livescore/services/tournament_service.dart';
 
 class TournamentDetailScreen extends StatelessWidget {
-  final Tournament tournament;
-
-  const TournamentDetailScreen({super.key, required this.tournament});
+  const TournamentDetailScreen({super.key});
 
   final Color primaryPurple = const Color(0xFF8B5CF6);
   final Color accentCyan = const Color(0xFF22D3EE);
@@ -66,7 +60,9 @@ class TournamentDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = tournament;
+    final Tournament t =
+    ModalRoute.of(context)!.settings.arguments as Tournament;
+
     final sportTheme = getSportTheme(t.sports);
 
     return Scaffold(
@@ -76,8 +72,8 @@ class TournamentDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon:
-          const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Colors.white, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -91,7 +87,8 @@ class TournamentDetailScreen extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (sportTheme["color"] as Color).withOpacity(0.1),
+                color:
+                (sportTheme["color"] as Color).withOpacity(0.1),
               ),
             ),
           ),
@@ -99,24 +96,19 @@ class TournamentDetailScreen extends StatelessWidget {
           ListView(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 40),
             children: [
-              /// HERO SPORT ICON
+              /// SPORT ICON
               Center(
                 child: Container(
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [primaryPurple, sportTheme["color"]],
+                      colors: [
+                        primaryPurple,
+                        sportTheme["color"]
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                        (sportTheme["color"] as Color).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      )
-                    ],
                   ),
                   child: Icon(
                     sportTheme["icon"],
@@ -128,7 +120,7 @@ class TournamentDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// TOURNAMENT NAME
+              /// NAME
               Center(
                 child: Text(
                   t.name,
@@ -157,7 +149,6 @@ class TournamentDetailScreen extends StatelessWidget {
                         color: Colors.white.withOpacity(0.5),
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
-                        letterSpacing: 1.2,
                       ),
                     ),
                   ],
@@ -166,7 +157,7 @@ class TournamentDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// STATUS + ADMIN MANAGE
+              /// STATUS + ADMIN
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -175,20 +166,21 @@ class TournamentDetailScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
-                        color:
-                        statusColor(t.registeration).withOpacity(0.1),
+                        color: statusColor(t.registeration)
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: statusColor(t.registeration)
-                                .withOpacity(0.5)),
+                          color: statusColor(t.registeration)
+                              .withOpacity(0.5),
+                        ),
                       ),
                       child: Text(
                         t.registeration,
                         style: TextStyle(
-                          color: statusColor(t.registeration),
+                          color:
+                          statusColor(t.registeration),
                           fontWeight: FontWeight.w900,
                           fontSize: 11,
-                          letterSpacing: 1,
                         ),
                       ),
                     ),
@@ -197,39 +189,30 @@ class TournamentDetailScreen extends StatelessWidget {
                       const SizedBox(width: 10),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
+                          Navigator.pushNamed(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => AdminMatchesScreen(
-                                tournamentId: t.id,
-                              ),
-                            ),
+                            '/adminMatches',
+                            arguments: t.id,
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          padding:
+                          const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6),
                           decoration: BoxDecoration(
-                            color: accentCyan.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: accentCyan.withOpacity(0.4)),
+                            color:
+                            accentCyan.withOpacity(0.1),
+                            borderRadius:
+                            BorderRadius.circular(20),
                           ),
-                          child: Row(
-                            children: const [
-                              Icon(Icons.edit_rounded,
-                                  size: 14, color: Colors.cyan),
-                              SizedBox(width: 4),
-                              Text(
-                                "MANAGE",
-                                style: TextStyle(
-                                  color: Colors.cyan,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 10,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
+                          child: const Text(
+                            "MANAGE",
+                            style: TextStyle(
+                              color: Colors.cyan,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
                       ),
@@ -238,82 +221,34 @@ class TournamentDetailScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 30),
 
-              /// STATS GRID
-              Row(
-                children: [
-                  _statCard(
-                      "STARTS", t.startDate, Icons.calendar_today_rounded),
-                  const SizedBox(width: 16),
-                  _statCard("ENDS", t.endDate, Icons.flag_rounded),
-                ],
+              /// TEAMS
+              _actionCard(
+                context,
+                label: "View Teams",
+                icon: Icons.groups_rounded,
+                route: '/tournamentTeams',
+                arguments: {
+                  "tournamentId": t.id,
+                  "sport": t.sports,
+                },
               ),
 
               const SizedBox(height: 16),
 
-              Row(
-                children: [
-                  _statCard(
-                    "SLOTS",
-                    "${t.registeredTeams}/${t.totalTeams}",
-                    Icons.groups_rounded,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TournamentTeamsScreen(
-                              tournamentId: t.id,
-                              sport: t.sports,
-                            )
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _statCard("TEAM SIZE",
-                      "${t.requiredPlayer} Players",
-                      Icons.person_add_alt_1_rounded),
-                ],
+              /// FIXTURES
+              _actionCard(
+                context,
+                label: "View Fixtures",
+                icon: Icons.sports_kabaddi_rounded,
+                route: '/tournamentFixtures',
+                arguments: t.id,
               ),
 
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  _statCard(
-                    "FIXTURES",
-                    "View Matches",
-                    Icons.sports_kabaddi_rounded,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TournamentFixturesScreen(tournamentId: t.id),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _sportCard(t.sports),
-                ],
-              ),
-
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               _buildRegisterButton(context, t.id),
-
-              const SizedBox(height: 25),
-
-              const Center(
-                child: Text(
-                  "Read Tournament Rules & Guidelines",
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
             ],
           ),
         ],
@@ -321,38 +256,35 @@ class TournamentDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _sportCard(String sportName) {
-    final theme = getSportTheme(sportName);
-    final Color sColor = theme["color"];
-
-    return Expanded(
+  Widget _actionCard(BuildContext context,
+      {required String label,
+        required IconData icon,
+        required String route,
+        required dynamic arguments}) {
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          route,
+          arguments: arguments,
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: sColor.withOpacity(0.2)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Icon(theme["icon"], color: sColor, size: 20),
-            const SizedBox(height: 12),
+            Icon(icon, color: accentCyan),
+            const SizedBox(width: 12),
             Text(
-              "CATEGORY",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.4),
-                fontWeight: FontWeight.w900,
-                fontSize: 9,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              theme["label"],
-              style: TextStyle(
-                color: sColor,
-                fontWeight: FontWeight.w900,
-                fontSize: 15,
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -361,58 +293,15 @@ class TournamentDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon,
-      {VoidCallback? onTap}) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: onTap != null
-                  ? accentCyan.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.08),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: accentCyan, size: 20),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
-                  fontWeight: FontWeight.w900,
-                  fontSize: 9,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegisterButton(BuildContext context, String tournamentId) {
+  Widget _buildRegisterButton(
+      BuildContext context, String tournamentId) {
     return GestureDetector(
       onTap: () async {
         if (!AuthService.isLeader()) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Only team leaders can register")),
+            const SnackBar(
+                content:
+                Text("Only team leaders can register")),
           );
           return;
         }
@@ -421,12 +310,14 @@ class TournamentDetailScreen extends StatelessWidget {
 
         if (teamId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("No team found")),
+            const SnackBar(
+                content: Text("No team found")),
           );
           return;
         }
 
-        final msg = await TournamentService.registerTeam(
+        final msg =
+        await TournamentService.registerTeam(
           teamId: teamId,
           tournamentId: tournamentId,
         );
@@ -435,9 +326,10 @@ class TournamentDetailScreen extends StatelessWidget {
             .showSnackBar(SnackBar(content: Text(msg)));
       },
       child: Container(
-        height: 60,
+        height: 55,
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [primaryPurple, accentCyan]),
+          gradient: LinearGradient(
+              colors: [primaryPurple, accentCyan]),
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Center(

@@ -12,6 +12,7 @@ import '../admin/create_tournament_screen.dart';
 import '../live_score_screen.dart';
 import '../tournament/TournamentMatchesScreen.dart';
 
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
   const HomeScreen({super.key, this.user});
@@ -104,6 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool isAdmin = widget.user?["role"] == "ADMIN";
 
     final pages = [
+
+      _homePage(),            // 0 HOME
+      const TeamsScreen(),    // 1 TEAMS
+      const SizedBox(),       // 2 CENTER (unused)
+      const EventsScreen(),   // 3 EVENTS
+      const Center(child: Text("Profile")), // 4 PROFILE
+
       _homePage(),
       const TeamsScreen(),
       const SizedBox(), // Placeholder for Admin Nav
