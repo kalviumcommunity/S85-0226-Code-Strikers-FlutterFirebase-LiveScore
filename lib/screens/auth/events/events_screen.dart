@@ -25,9 +25,9 @@ class _EventsScreenState extends State<EventsScreen> {
 
   Color getStatusColor(String s) {
     switch (s) {
-      case "OPEN":
+      case "OPENN":
         return Colors.greenAccent;
-      case "ONGOING":
+      case "ONGOINGG":
         return Colors.orangeAccent;
       case "COMPLETED":
         return Colors.white38;
@@ -42,7 +42,7 @@ class _EventsScreenState extends State<EventsScreen> {
       backgroundColor: const Color(0xFF0F172A), // Deep Navy
       appBar: AppBar(
         title: const Text(
-          "Tournaments",
+          "TournamentS",
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: 1),
         ),
         backgroundColor: Colors.transparent,
@@ -59,7 +59,7 @@ class _EventsScreenState extends State<EventsScreen> {
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                "Error loading events",
+                "Error Loading Events",
                 style: TextStyle(color: Colors.redAccent.withOpacity(0.8)),
               ),
             );
@@ -70,7 +70,7 @@ class _EventsScreenState extends State<EventsScreen> {
           if (list.isEmpty) {
             return const Center(
               child: Text(
-                "No active tournaments",
+                "No Active Tournaments",
                 style: TextStyle(color: Colors.white38),
               ),
             );

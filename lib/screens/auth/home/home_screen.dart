@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "LiveScore Home",
+              "Livescore Home",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
