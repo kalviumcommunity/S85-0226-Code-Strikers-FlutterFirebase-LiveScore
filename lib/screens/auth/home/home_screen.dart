@@ -3,9 +3,6 @@ import '../../../widgets/glow_bottom_nav.dart';
 import 'package:livescore/screens/auth/events/events_screen.dart';
 import 'package:livescore/screens/auth/teams/teams_screen.dart';
 
-
-import '../admin/create_tournament_screen.dart';
-
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
 
@@ -28,27 +25,19 @@ class _HomeScreenState extends State<HomeScreen> {
       const TeamsScreen(),    // 1 TEAMS
       const SizedBox(),       // 2 CENTER (unused)
       const EventsScreen(),   // 3 EVENTS
-      const Center(child: Text("Profille")), // 4 PROFILE
+      const Center(child: Text("Profile")), // 4 PROFILE
     ];
 
     return Scaffold(
       extendBody: true,
       body: pages[index],
-
       bottomNavigationBar: GlowBottomNav(
         index: index,
         isAdmin: isAdmin,
         onTap: (i) {
-          /// ✅ CENTER ADMIN BUTTON
           if (i == 2) {
             if (!isAdmin) return;
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const CreateTournamentScreen(),
-              ),
-            );
+            Navigator.pushNamed(context, '/createTournament');
             return;
           }
 
@@ -75,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
             if (user != null) ...[
               Text("Name: ${user["name"]}"),
               Text("Email: ${user["email"]}"),
