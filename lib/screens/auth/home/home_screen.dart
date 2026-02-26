@@ -3,8 +3,10 @@ import '../../../widgets/glow_bottom_nav.dart';
 import 'package:livescore/screens/auth/events/events_screen.dart';
 import 'package:livescore/screens/auth/teams/teams_screen.dart';
 
+
 import '../admin/create_tournament_screen.dart';
 import '../live_score_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
@@ -24,11 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool isAdmin = user?["role"] == "ADMIN";
 
     final pages = [
+
+      _homePage(),            // 0 HOME
+      const TeamsScreen(),    // 1 TEAMS
+      const SizedBox(),       // 2 CENTER (unused)
+      const EventsScreen(),   // 3 EVENTS
+      const Center(child: Text("Profile")), // 4 PROFILE
+
       _homePage(),
       const TeamsScreen(),
       const SizedBox(),
       const EventsScreen(),
       const Center(child: Text("Profile")),
+
     ];
 
     return Scaffold(
@@ -40,13 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (i) {
           if (i == 2) {
             if (!isAdmin) return;
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const CreateTournamentScreen(),
-              ),
-            );
+            Navigator.pushNamed(context, '/createTournament');
             return;
           }
 
@@ -84,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 20),
 
-            /// USER INFO
             if (user != null) ...[
               Text("Name: ${user["name"]}"),
               Text("Role: ${user["role"]}"),
