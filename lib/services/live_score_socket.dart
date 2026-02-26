@@ -6,18 +6,21 @@ import 'package:stomp_dart_client/stomp_frame.dart';
 class LiveScoreSocket {
   StompClient? _client;
 
+  static const String _wsUrl =
+      "https://livescorebackend-production.up.railway.app/ws";
+
   void connect({
-    required String tournamentId,   // ⭐ add
+    required String tournamentId,
     required String matchId,
     required Function(Map<String, dynamic>) onData,
   }) {
     _client = StompClient(
       config: StompConfig.SockJS(
-        url: "http://127.0.0.1:8080/ws",
+        url: _wsUrl,
         onConnect: (frame) {
           print("WS CONNECTED");
 
-          // subscribe for updates
+          // subscribe for live updates
           _client!.subscribe(
             destination: '/topic/live-score/$matchId',
             callback: (frame) {
@@ -29,7 +32,7 @@ class LiveScoreSocket {
             },
           );
 
-          // request snapshot
+          // request initial snapshot
           _client!.send(
             destination: '/app/live-score/$tournamentId/$matchId',
             body: '',
