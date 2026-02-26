@@ -34,14 +34,20 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   }
 
   Future<void> loadMembers() async {
-    final a = await TeamService.getTeamMembers(widget.match["teamAId"]);
-    final b = await TeamService.getTeamMembers(widget.match["teamBId"]);
+    final m = widget.match;
+    final isSecond = m["liveData"]?["innings"] == 2;
+
+    final battingId = isSecond ? m["teamBId"] : m["teamAId"];
+    final bowlingId = isSecond ? m["teamAId"] : m["teamBId"];
+
+    final bat = await TeamService.getTeamMembers(battingId);
+    final bowl = await TeamService.getTeamMembers(bowlingId);
 
     if (!mounted) return;
 
     setState(() {
-      membersA = a;
-      membersB = b;
+      membersA = bat;
+      membersB = bowl;
     });
   }
 
@@ -107,6 +113,20 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final m = widget.match;
+
+    final isSecondInnings = m["liveData"]?["innings"] == 2;
+
+    final battingTeamId =
+    isSecondInnings ? m["teamBId"] : m["teamAId"];
+
+    final battingTeamName =
+    isSecondInnings ? m["teamBName"] : m["teamAName"];
+
+    final bowlingTeamId =
+    isSecondInnings ? m["teamAId"] : m["teamBId"];
+
+    final bowlingTeamName =
+    isSecondInnings ? m["teamAName"] : m["teamBName"];
 
     return Scaffold(
       backgroundColor: darkBg,
@@ -285,6 +305,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
       child: DropdownButtonFormField<String>(
         dropdownColor: cardBg,
         value: value,
+        isExpanded: true,
         icon: Icon(Icons.keyboard_arrow_down_rounded, color: accentColor),
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: accentColor, size: 20),
@@ -298,10 +319,13 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
           const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
         items: items.map<DropdownMenuItem<String>>((p) {
+          final id = p["userId"] ?? p["id"];
+          final name = p["name"] ?? p["playerName"] ?? "Player";
+
           return DropdownMenuItem(
-            value: p["userId"]?.toString(),
+            value: id.toString(),
             child: Text(
-              p["name"] ?? "Player",
+              name,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,

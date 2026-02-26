@@ -19,16 +19,20 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
   // State Variables
   String sport = "CRICKET";
-  String registrationStatus = "OPEN"; // Matches Java Enum Registeration
+  String registrationStatus = "OPEN";
   DateTime? startDate;
   DateTime? endDate;
   bool _isSubmitting = false;
+
+  // ✅ 1️⃣ Add state variable
+  int? totalOvers;
 
   // Design Palette
   final Color primaryPurple = const Color(0xFF8B5CF6);
   final Color accentCyan = const Color(0xFF22D3EE);
   final Color inputBg = const Color(0xFF1E293B).withOpacity(0.5);
 
+  // ✅ 4️⃣ Add overs to submit API
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -41,8 +45,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // Sending data to backend
-    // Note: registrationStatus is sent as a String to match Spring Boot Enum
     final success = await TournamentService.createTournament(
       name: nameCtrl.text,
       location: locationCtrl.text,
@@ -52,6 +54,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       totalTeams: int.parse(totalTeamsCtrl.text),
       requiredPlayer: int.parse(requiredPlayersCtrl.text),
       registration: registrationStatus,
+      totalOvers: sport == "CRICKET" ? totalOvers : null, // ⭐ Added
     );
 
     if (!mounted) return;
@@ -115,6 +118,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   Expanded(child: _buildRegistrationDropdown()),
                 ],
               ),
+
+              // ✅ 2️⃣ Show overs field only for cricket
+              if (sport == "CRICKET") ...[
+                const SizedBox(height: 16),
+                _buildOversDropdown(),
+              ],
+
               const SizedBox(height: 32),
 
               _sectionHeader("SCHEDULE"),
@@ -143,6 +153,29 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // ✅ 3️⃣ Overs dropdown widget
+  Widget _buildOversDropdown() {
+    return DropdownButtonFormField<int>(
+      value: totalOvers,
+      dropdownColor: const Color(0xFF1E293B),
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      onChanged: (v) => setState(() => totalOvers = v),
+      items: [1, 2, 4, 6, 8, 10, 12, 15, 20]
+          .map((o) => DropdownMenuItem(
+        value: o,
+        child: Text("$o Overs", style: const TextStyle(fontSize: 13)),
+      ))
+          .toList(),
+      decoration: _inputDecoration("Total Overs", Icons.sports_cricket),
+      validator: (v) {
+        if (sport == "CRICKET" && v == null) {
+          return "Required";
+        }
+        return null;
+      },
     );
   }
 
@@ -176,7 +209,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       value: sport,
       dropdownColor: const Color(0xFF1E293B),
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-      onChanged: (v) => setState(() => sport = v!),
+      onChanged: (v) {
+        setState(() {
+          sport = v!;
+          // Reset overs if sport is changed from Cricket to something else
+          if (sport != "CRICKET") totalOvers = null;
+        });
+      },
       items: ["CRICKET", "FOOTBALL", "VOLLEYBALL", "BASKETBALL"]
           .map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13))))
           .toList(),
@@ -212,6 +251,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: accentCyan.withOpacity(0.5)),
+      ),
+      // Styling for error text
+      errorStyle: const TextStyle(color: Colors.redAccent),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.redAccent),
       ),
     );
   }
