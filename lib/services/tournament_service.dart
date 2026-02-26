@@ -5,7 +5,7 @@ import '../models/tournament.dart';
 import 'auth_service.dart';
 
 class TournamentService {
-  static const String baseUrl = "http://127.0.0.1:8080";
+  static const String baseUrl = "https://livescorebackend-production.up.railway.app";
 
   /// ===============================
   /// FETCH ALL TOURNAMENTS
@@ -233,5 +233,87 @@ class TournamentService {
     if (res.statusCode != 200) {
       throw Exception("Failed to update ball");
     }
+  }
+
+  static Future<List<dynamic>> getAll() async {
+    final res = await http.get(Uri.parse("$baseUrl/get/tournament"));
+
+    if (res.statusCode != 200) {
+      throw Exception("Failed to load tournaments");
+    }
+
+    return json.decode(res.body);
+  }
+  static Future<void> selectNewStriker({
+    required String tournamentId,
+    required String matchId,
+    required String strikerId,
+  }) async {
+    final url =
+        "$baseUrl/tournaments/$tournamentId/matches/$matchId/cricket/new-striker"
+        "?strikerId=$strikerId";
+
+    final res = await http.post(
+      Uri.parse(url),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception("Failed to select new striker");
+    }
+  }
+  static Future<void> selectBowler({
+    required String tournamentId,
+    required String matchId,
+    required String bowlerId,
+  }) async {
+    final url =
+        "$baseUrl/tournaments/$tournamentId/matches/$matchId/cricket/new-bowler"
+        "?bowlerId=$bowlerId";
+
+    final res = await http.post(
+      Uri.parse(url),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception("Failed to select bowler");
+    }
+  }
+  static Future<List<Map<String, dynamic>>> getAvailableBatsmen({
+    required String tournamentId,
+    required String matchId,
+  }) async {
+    final url =
+        "$baseUrl/tournaments/$tournamentId/matches/$matchId/cricket/available-batsmen";
+
+    final res = await http.get(
+      Uri.parse(url),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.cast<Map<String, dynamic>>();
+    }
+
+    throw Exception("Failed to load available batsmen");
+  }
+  static Future<Map<String, dynamic>> getMatch(
+      String tournamentId,
+      String matchId,
+      ) async {
+    final url = "$baseUrl/tournaments/$tournamentId/matches/$matchId";
+
+    final res = await http.get(
+      Uri.parse(url),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    }
+
+    throw Exception("Failed to load match");
   }
 }
