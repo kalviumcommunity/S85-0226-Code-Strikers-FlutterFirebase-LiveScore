@@ -44,6 +44,7 @@ class TournamentService {
     required int totalTeams,
     required int requiredPlayer,
     required String registration,
+    int? totalOvers,
   }) async {
     final url = "$baseUrl/api/admin/tournaments";
 
@@ -58,6 +59,7 @@ class TournamentService {
 
       /// ⚠️ IMPORTANT — match backend field name
       "registeration": registration,
+      "totalOvers": totalOvers,
     };
 
     print("CREATE TOURNAMENT BODY => ${jsonEncode(body)}");
