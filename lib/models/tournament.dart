@@ -28,12 +28,12 @@ class Tournament {
       id: json["id"] ?? "",
       name: json["Name"] ?? "",
       location: json["Location"] ?? "",
-      sports: json["Sports"] ?? "",   // ✅ added
+      sports: json["Sportss"] ?? "",   // ✅ added
       startDate: json["StartDate"] ?? "",
       endDate: json["EndDate"] ?? "",
-      totalTeams: json["TotalTeams"] ?? 0,
-      registeredTeams: json["registeredTeams"] ?? 0,
-      requiredPlayer: json["requiredPlayer"] ?? 0,
+      totalTeams: json["TotalTeam"] ?? 0,
+      registeredTeams: json["registeredTeam"] ?? 0,
+      requiredPlayer: json["requiredPlayers"] ?? 0,
       registeration: json["registeration"] ?? "",
     );
   }
