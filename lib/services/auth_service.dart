@@ -18,6 +18,50 @@ class AuthService {
   static String? teamId;
 
   /* ================= LOGIN ================= */
+  /* ================= VERIFY SIGNUP OTP ================= */
+
+
+  static Future<Map<String, dynamic>> verifySignupOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final url = "$baseUrl/auth/verify-signup?email=$email&otp=$otp";
+
+    final response = await http.post(Uri.parse(url));
+
+    print("VERIFY OTP STATUS = ${response.statusCode}");
+    print("VERIFY OTP BODY = ${response.body}");
+
+    if (response.statusCode == 200) {
+      return {"success": true};
+    }
+
+    return {
+      "success": false,
+      "message": "Invalid or expired OTP"
+    };
+  }
+
+/* ================= RESEND SIGNUP OTP ================= */
+
+  static Future<Map<String, dynamic>> resendSignupOtp({
+    required String email,
+  }) async {
+    final url = "$baseUrl/auth/resend-signup-otp?email=$email";
+
+    final response = await http.post(Uri.parse(url));
+
+    print("RESEND OTP STATUS = ${response.statusCode}");
+
+    if (response.statusCode == 200) {
+      return {"success": true};
+    }
+
+    return {
+      "success": false,
+      "message": "Failed to resend OTP"
+    };
+  }
 
   static Future<Map<String, dynamic>> login({
     required String email,
