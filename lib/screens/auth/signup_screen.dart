@@ -5,7 +5,8 @@ import '../../widgets/auth_textfield.dart';
 import '../../widgets/auth_button.dart';
 import '../../theme/auth_theme.dart';
 import '../../theme/theme_controller.dart';
-import '../../services/auth_service.dart';   // ✅ ADD
+import '../../services/auth_service.dart';
+import 'otp_verify_screen.dart';   // ✅ ADD
 
 class SignupScreen extends StatefulWidget {
   final ThemeController themeController;
@@ -56,13 +57,19 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => loading = false);
 
     if (result["success"]) {
-      _show("Account created ✔");
+      if (!mounted) return;
 
-      /// optional auto login
-      await AuthService.login(email: email, password: password);
-      await AuthService.getMe();
-
-      if (mounted) Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OtpVerifyScreen(
+            email: email,
+            password: password,
+              themeController: widget.themeController
+            // ⭐ pass for auto login later
+          ),
+        ),
+      );
       return;
     }
 
