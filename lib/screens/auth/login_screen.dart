@@ -26,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   final Color neonCyan = const Color(0xFF22D3EE);
   final Color royalPurple = const Color(0xFF6366F1);
 
+  Map<String, dynamic>? get userData => null;
+
   @override
   void initState() {
     super.initState();
@@ -75,8 +77,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomeScreen(
-            user: meResult["user"],
+          builder: (context) => HomeScreen(
+            user: userData,
+            themeController: widget.themeController, // Handing over the baton
           ),
         ),
       );
