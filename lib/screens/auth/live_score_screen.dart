@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../services/live_score_socket.dart';
 
 class LiveScoreScreen extends StatefulWidget {
@@ -15,25 +17,55 @@ class LiveScoreScreen extends StatefulWidget {
   State<LiveScoreScreen> createState() => _LiveScoreScreenState();
 }
 
-class _LiveScoreScreenState extends State<LiveScoreScreen> with SingleTickerProviderStateMixin {
+class _LiveScoreScreenState extends State<LiveScoreScreen>
+    with SingleTickerProviderStateMixin {
   final socket = LiveScoreSocket();
   Map<String, dynamic>? live;
   late TabController _tabController;
 
-  // Professional Palette
   final Color darkBg = const Color(0xFF0F172A);
   final Color cardBg = const Color(0xFF1E293B);
   final Color accentCyan = const Color(0xFF22D3EE);
   final Color liveRed = const Color(0xFFEF4444);
+  final Color primaryPurple = const Color(0xFF8B5CF6);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    _fetchInitialData(); // API first
+    _connectSocket(); // then realtime
+  }
+
+  Future<void> _fetchInitialData() async {
+    try {
+      final res = await http.get(Uri.parse(
+          "https://livescorebackend-production.up.railway.app/live/${widget.tournamentId}"));
+
+      if (res.statusCode == 200) {
+        List list = json.decode(res.body);
+
+        final match =
+        list.firstWhere((m) => m["matchId"] == widget.matchId, orElse: () => null);
+
+        if (match != null && mounted) {
+          setState(() => live = Map<String, dynamic>.from(match));
+        }
+      }
+    } catch (e) {
+      debugPrint("Initial fetch error: $e");
+    }
+  }
+
+  void _connectSocket() {
     socket.connect(
       tournamentId: widget.tournamentId,
       matchId: widget.matchId,
-      onData: (data) => setState(() => live = data),
+      onData: (data) {
+        if (!mounted) return;
+        setState(() => live = data);
+      },
     );
   }
 
@@ -64,31 +96,37 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> with SingleTickerProv
       body: Column(
         children: [
           _buildMainScorecard(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildOnFieldStats(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          _buildBattingTable(live!["battingA"]),
+          const SizedBox(height: 10),
+          _buildBowlingTable(live!["bowlingB"]),
+          const SizedBox(height: 12),
           _buildSquadTabs(),
         ],
       ),
     );
   }
 
-  /// 1. APP BAR LIVE INDICATOR
+  /// APP BAR
   Widget _liveAppBarTitle() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8, height: 8,
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(color: liveRed, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
-        const Text("LIVE SCORECARD", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        const Text("LIVE SCORECARD",
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
       ],
     );
   }
 
-  /// 2. THE MAIN HEADER SCORE (Team vs Team)
+  /// MAIN SCORE
   Widget _buildMainScorecard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -96,76 +134,144 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> with SingleTickerProv
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("T20 Match • ${live!["status"] ?? "LIVE"}",
-              style: TextStyle(color: accentCyan, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _teamInnings(live!["teamAName"], live!["scoreA"], live!["wicketsA"], live!["oversA"], true),
-              const Text("VS", style: TextStyle(color: Colors.white24, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
-              _teamInnings(live!["teamBName"], live!["scoreB"], live!["wicketsB"], live!["oversB"], false),
-            ],
-          ),
+          _teamInnings(
+              live!["teamAName"],
+              live!["scoreA"],
+              live!["wicketsA"],
+              live!["oversA"],
+              true),
+          const Text("VS", style: TextStyle(color: Colors.white24)),
+          _teamInnings(
+              live!["teamBName"],
+              live!["scoreB"],
+              live!["wicketsB"],
+              live!["oversB"],
+              false),
         ],
       ),
     );
   }
 
-  Widget _teamInnings(String name, dynamic runs, dynamic wickets, dynamic overs, bool isLeading) {
+  Widget _teamInnings(
+      String name, dynamic runs, dynamic wickets, dynamic overs, bool lead) {
     return Column(
       children: [
-        Text(name, style: TextStyle(color: isLeading ? Colors.white : Colors.white54, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text("$runs/$wickets", style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
-        Text("($overs ov)", style: const TextStyle(color: Colors.white38, fontSize: 12)),
+        Text(name,
+            style: TextStyle(
+                color: lead ? Colors.white : Colors.white54,
+                fontWeight: FontWeight.bold)),
+        Text("$runs/$wickets",
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.w900)),
+        Text("$overs ov",
+            style: const TextStyle(color: Colors.white38, fontSize: 12)),
       ],
     );
   }
 
-  /// 3. ON-FIELD SECTION (Striker, Non-Striker, Bowler)
+  /// ON FIELD
   Widget _buildOnFieldStats() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: cardBg.withOpacity(0.5), borderRadius: BorderRadius.circular(16)),
+      decoration:
+      BoxDecoration(color: cardBg.withOpacity(0.5), borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _fieldPlayerRow("Striker", live!["strikerName"], isStriker: true),
-          const Divider(color: Colors.white10, height: 20),
-          _fieldPlayerRow("Non-Striker", live!["nonStrikerName"]),
-          const Divider(color: Colors.white10, height: 20),
-          _fieldPlayerRow("Bowler", live!["bowlerName"], isBowler: true),
+          _fieldRow("Striker", live!["strikerName"]),
+          _fieldRow("Non-Striker", live!["nonStrikerName"]),
+          _fieldRow("Bowler", live!["bowlerName"]),
         ],
       ),
     );
   }
 
-  Widget _fieldPlayerRow(String label, String? name, {bool isStriker = false, bool isBowler = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(
-                isBowler ? Icons.sports_baseball : Icons.sports_cricket,
-                size: 16,
-                color: isStriker ? Colors.orangeAccent : Colors.white38
-            ),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-          ],
-        ),
-        Text(name ?? "-", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ],
+  Widget _fieldRow(String label, String? name) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white38)),
+          Text(name ?? "-", style: const TextStyle(color: Colors.white)),
+        ],
+      ),
     );
   }
 
-  /// 4. SQUAD TABS
+  /// BATTING TABLE
+  Widget _buildBattingTable(List players) {
+    if (players.isEmpty) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: cardBg.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Batting",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          const Divider(color: Colors.white10),
+          ...players.map<Widget>((p) {
+            return Row(
+              children: [
+                Expanded(flex: 3, child: Text(p["playerName"], style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["runs"]}", style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["balls"]}", style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["fours"]}", style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["sixes"]}", style: const TextStyle(color: Colors.white))),
+              ],
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  /// BOWLING TABLE
+  Widget _buildBowlingTable(List players) {
+    if (players.isEmpty) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+          color: cardBg.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Bowling",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          const Divider(color: Colors.white10),
+          ...players.map<Widget>((p) {
+            double overs = (p["balls"] ?? 0) / 6;
+            return Row(
+              children: [
+                Expanded(flex: 3, child: Text(p["playerName"], style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text(overs.toStringAsFixed(1), style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["runs"]}", style: const TextStyle(color: Colors.white))),
+                Expanded(child: Text("${p["wickets"]}", style: const TextStyle(color: Colors.white))),
+              ],
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  /// SQUAD
   Widget _buildSquadTabs() {
     return Expanded(
       child: Column(
@@ -195,15 +301,17 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> with SingleTickerProv
   }
 
   Widget _playerList(List? players) {
-    if (players == null || players.isEmpty) return const Center(child: Text("No Squad Data", style: TextStyle(color: Colors.white24)));
+    if (players == null || players.isEmpty) {
+      return const Center(
+          child: Text("No Squad Data", style: TextStyle(color: Colors.white24)));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: players.length,
-      itemBuilder: (context, i) => Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(8)),
-        child: Text(players[i].toString(), style: const TextStyle(color: Colors.white)),
+      itemBuilder: (context, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(players[i].toString(),
+            style: const TextStyle(color: Colors.white)),
       ),
     );
   }

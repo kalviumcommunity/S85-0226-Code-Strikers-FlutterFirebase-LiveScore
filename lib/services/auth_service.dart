@@ -124,6 +124,29 @@ class AuthService {
       "message": "Signup failed",
     };
   }
+  static Future<Map<String, dynamic>> getPlayerStats() async {
+    if (userId == null) {
+      return {"success": false, "message": "User ID not found"};
+    }
+
+    final url = "$baseUrl/auth/player/$userId/cricket-stats";
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    print("STATS STATUS = ${response.statusCode}");
+    print("STATS BODY = ${response.body}");
+
+    if (response.statusCode == 200) {
+      final stats = jsonDecode(response.body);
+      return {"success": true, "stats": stats};
+    }
+
+    return {"success": false, "message": "Failed to load stats"};
+  }
+
 
 
   /* ================= GET ME ================= */
@@ -172,3 +195,4 @@ class AuthService {
   static bool isAdmin() =>
       role == "ADMIN" || role == "ROLE_ADMIN";
 }
+
