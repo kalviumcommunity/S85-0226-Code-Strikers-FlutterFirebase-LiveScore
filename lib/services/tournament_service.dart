@@ -219,11 +219,15 @@ class TournamentService {
     required String matchId,
     required int runs,
     required bool wicket,
+    bool wide = false,
+    bool noBall = false,
   }) async {
     final url =
         "$baseUrl/tournaments/$tournamentId/matches/$matchId/cricket/ball"
         "?runs=$runs"
-        "&wicket=$wicket";
+        "&wicket=$wicket"
+        "&wide=$wide"
+        "&noBall=$noBall";
 
     final res = await http.post(
       Uri.parse(url),

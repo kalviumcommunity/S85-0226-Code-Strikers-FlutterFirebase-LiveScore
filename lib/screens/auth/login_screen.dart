@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   final Color neonCyan = const Color(0xFF22D3EE);
   final Color royalPurple = const Color(0xFF6366F1);
 
-  Map<String, dynamic>? get userData => null;
+
 
   @override
   void initState() {
@@ -74,18 +74,18 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     if (!mounted) return;
 
     if (meResult["success"]) {
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomeScreen(
-            user: userData,
-            themeController: widget.themeController, // Handing over the baton
+            user: meResult["user"],
+            themeController: widget.themeController,
           ),
         ),
       );
       return;
     }
-
     _show(meResult["message"] ?? "Auth failed");
   }
 
