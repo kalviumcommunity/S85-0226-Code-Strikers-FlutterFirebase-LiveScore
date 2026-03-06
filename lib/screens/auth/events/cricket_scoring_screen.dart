@@ -37,15 +37,25 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
   String getBowlingTeamId() =>
       currentInnings == 1 ? widget.match["teamBId"] : widget.match["teamAId"];
 
-  /// ===============================
-  /// RECORD BALL
-  /// ===============================
-  Future<void> recordBall(int runs, bool wicket) async {
+  Future<void> recordBall(
+      int runs,
+      bool wicket, {
+        bool wide = false,
+        bool noBall = false,
+      }) async {
     if (loading || needsStriker || needsBowler || matchEnded) return;
 
     setState(() {
       loading = true;
-      ballHistory.insert(0, wicket ? "W" : runs.toString());
+
+      if (wide) {
+        ballHistory.insert(0, "Wd");
+      } else if (noBall) {
+        ballHistory.insert(0, "Nb");
+      } else {
+        ballHistory.insert(0, wicket ? "W" : runs.toString());
+      }
+
       if (ballHistory.length > 6) ballHistory.removeLast();
     });
 
@@ -55,6 +65,8 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
         matchId: widget.match["id"],
         runs: runs,
         wicket: wicket,
+        wide: wide,
+        noBall: noBall,
       );
 
       final matchData = await TournamentService.getMatch(
@@ -62,7 +74,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
         widget.match["id"],
       );
 
-      /// ===== MATCH COMPLETED =====
       if (matchData["status"] == "COMPLETED") {
         setState(() {
           matchEnded = true;
@@ -76,7 +87,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
 
       final newInnings = matchData["liveData"]["innings"] ?? currentInnings;
 
-      /// ===== INNINGS SWITCH =====
       if (newInnings != currentInnings) {
         setState(() {
           currentInnings = newInnings;
@@ -88,14 +98,12 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
         return;
       }
 
-      /// ===== WICKET =====
       if (wicket) {
         setState(() => needsStriker = true);
         await _pickNewStriker();
       }
 
-      /// ===== OVER COMPLETE =====
-      if (ballHistory.length == 6) {
+      if (!wide && !noBall && ballHistory.length == 6) {
         setState(() {
           ballHistory.clear();
           needsBowler = true;
@@ -111,9 +119,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
     if (mounted) setState(() => loading = false);
   }
 
-  /// ===============================
-  /// START NEW INNINGS
-  /// ===============================
   Future<void> _startNewInnings() async {
     final battingTeamId = getBattingTeamId();
     final bowlingTeamId = getBowlingTeamId();
@@ -160,9 +165,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
     });
   }
 
-  /// ===============================
-  /// PICK NEW STRIKER
-  /// ===============================
   Future<void> _pickNewStriker() async {
     final batsmen = await TournamentService.getAvailableBatsmen(
       tournamentId: widget.match["tournamentId"],
@@ -196,9 +198,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
     setState(() => needsStriker = false);
   }
 
-  /// ===============================
-  /// PICK NEW BOWLER
-  /// ===============================
   Future<void> _pickNewBowler() async {
     final player = await Navigator.push(
       context,
@@ -219,9 +218,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
     setState(() => needsBowler = false);
   }
 
-  /// ===============================
-  /// WIN MESSAGE
-  /// ===============================
   String getWinMessage() {
     if (!matchEnded || scoreA == null || scoreB == null) return "";
 
@@ -237,9 +233,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
     }
   }
 
-  /// ===============================
-  /// UI
-  /// ===============================
   @override
   Widget build(BuildContext context) {
     final battingTeam =
@@ -304,18 +297,6 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
                     fontSize: 18),
               ),
             ),
-          if (needsStriker)
-            const Padding(
-              padding: EdgeInsets.only(top: 10),
-              child:
-              Text("Select new batsman", style: TextStyle(color: Colors.redAccent)),
-            ),
-          if (needsBowler)
-            const Padding(
-              padding: EdgeInsets.only(top: 6),
-              child:
-              Text("Select new bowler", style: TextStyle(color: Colors.orange)),
-            ),
         ],
       ),
     );
@@ -368,6 +349,11 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
           Row(children: [
             _scoreBtn(4, "FOUR", isBoundary: true),
             _scoreBtn(6, "SIX", isBoundary: true),
+            _extraBtn("WD", wide: true),
+            _extraBtn("NB", noBall: true),
+          ]),
+          const SizedBox(height: 12),
+          Row(children: [
             _wicketBtn(),
           ]),
         ],
@@ -395,6 +381,44 @@ class _CricketScoringScreenState extends State<CricketScoringScreen> {
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w900)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _extraBtn(String label, {bool wide = false, bool noBall = false}) {
+    final disabled = loading || needsStriker || needsBowler || matchEnded;
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Material(
+          color: Colors.orange.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: disabled
+                ? null
+                : () => recordBall(
+              0,
+              false,
+              wide: wide,
+              noBall: noBall,
+            ),
+            child: SizedBox(
+              height: 75,
+              child: Center(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ),
           ),
