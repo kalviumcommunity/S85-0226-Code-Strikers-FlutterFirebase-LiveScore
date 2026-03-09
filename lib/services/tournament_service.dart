@@ -320,4 +320,19 @@ class TournamentService {
 
     throw Exception("Failed to load match");
   }
+  static Future<List<Map<String, dynamic>>> getPointsTable(
+      String tournamentId,
+      ) async {
+    final res = await http.get(
+      Uri.parse("$baseUrl/PointTable/$tournamentId/points-table"),
+      headers: AuthService.authHeader,
+    );
+
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.cast<Map<String, dynamic>>();
+    }
+
+    throw Exception("Failed to load points table");
+  }
 }

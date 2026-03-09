@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:livescore/models/tournament.dart';
-import 'package:livescore/services/auth_service.dart';
-import 'package:livescore/services/tournament_service.dart';
+import 'package:livescore/screens/auth/events/tournament_fixtures_screen.dart';
+import 'package:livescore/screens/auth/events/tournament_teams_screen.dart';
+
+import '../../../services/auth_service.dart';
+import '../../../services/tournament_service.dart';
+import 'PointsTableScreen.dart';
+import 'admin_matches_screen.dart';
+
 
 class TournamentDetailScreen extends StatelessWidget {
   const TournamentDetailScreen({super.key});
@@ -237,16 +243,53 @@ class TournamentDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              /// FIXTURES
-              _actionCard(
-                context,
-                label: "View Fixtures",
-                icon: Icons.sports_kabaddi_rounded,
-                route: '/tournamentFixtures',
-                arguments: t.id,
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  _statCard(
+                    "FIXTURES",
+                    "View Matches",
+                    Icons.sports_kabaddi_rounded,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TournamentFixturesScreen(
+                          tournamentId: t.id,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  _sportCard(t.sports),
+                ],
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  _statCard(
+                    "POINT TABLE",
+                    "View Rankings",
+                    Icons.leaderboard_rounded,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PointsTableScreen(
+                          tournamentId: t.id,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Container(),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 40),
 
               _buildRegisterButton(context, t.id),
             ],
