@@ -13,6 +13,7 @@ import '../admin/create_tournament_screen.dart';
 
 import '../profile/profile_screen/profile_screen.dart';   // ✅ ADDED PROFILE IMPORT
 
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
   final ThemeController themeController; // ✅ ADDED THIS
@@ -111,6 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool isAdmin = widget.user?["role"] == "ADMIN";
 
     final pages = [
+
+      _homePage(),            // 0 HOME
+      const TeamsScreen(),    // 1 TEAMS
+      const SizedBox(),       // 2 CENTER (unused)
+      const EventsScreen(),   // 3 EVENTS
+      const Center(child: Text("Profile")), // 4 PROFILE
+
       _homePage(),
       const TeamsScreen(),
       const SizedBox(),

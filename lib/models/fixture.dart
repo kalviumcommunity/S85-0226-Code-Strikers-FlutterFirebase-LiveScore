@@ -23,11 +23,11 @@ class Fixture {
 
   factory Fixture.fromJson(Map<String, dynamic> json) {
     return Fixture(
-      id: json["id"],
-      teamAName: json["teamAName"] ?? "TBD",
-      teamBName: json["teamBName"] ?? "TBD",
-      round: json["round"] ?? 1,
-      status: json["status"] ?? "PENDING",
+      id: json["Id"],
+      teamAName: json["TeamAName"] ?? "TBD",
+      teamBName: json["TeamBName"] ?? "TBD",
+      round: json["Round"] ?? 1,
+      status: json["Status"] ?? "PENDING",
 
       /// safe defaults
       scoreA: json["scoreA"] ?? 0,
