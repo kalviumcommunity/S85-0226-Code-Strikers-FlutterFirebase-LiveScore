@@ -5,7 +5,9 @@ import 'package:livescore/screens/auth/events/tournament_teams_screen.dart';
 
 import '../../../services/auth_service.dart';
 import '../../../services/tournament_service.dart';
+import 'PointsTableScreen.dart';
 import 'admin_matches_screen.dart';
+
 
 class TournamentDetailScreen extends StatelessWidget {
   final Tournament tournament;
@@ -278,6 +280,8 @@ class TournamentDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
+
               Row(
                 children: [
                   _statCard(
@@ -287,13 +291,38 @@ class TournamentDetailScreen extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            TournamentFixturesScreen(tournamentId: t.id),
+                        builder: (_) => TournamentFixturesScreen(
+                          tournamentId: t.id,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   _sportCard(t.sports),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  _statCard(
+                    "POINT TABLE",
+                    "View Rankings",
+                    Icons.leaderboard_rounded,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PointsTableScreen(
+                          tournamentId: t.id,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Container(),
+                  ),
                 ],
               ),
 
