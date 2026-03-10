@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../theme/theme_controller.dart';
 import '../../login_screen.dart';
-
+import '../widgets/info_card.dart';
 class ProfileScreen extends StatefulWidget {
   final ThemeController themeController; // 1. Add this field
 

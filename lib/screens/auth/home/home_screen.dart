@@ -13,7 +13,7 @@ import '../admin/create_tournament_screen.dart';
 
 import '../profile/profile_screen/profile_screen.dart';   // ✅ ADDED PROFILE IMPORT
 
-
+import '../widgets/info_card.dart';
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
   final ThemeController themeController; // ✅ ADDED THIS
