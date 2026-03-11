@@ -17,10 +17,10 @@ class Tournament {
     required this.sports,        // ✅ added
     required this.startDate,
     required this.endDate,
-    required this.totalTeams,
+    required this.totalTeamss,
     required this.registeredTeams,
     required this.requiredPlayer,
-    required this.registeration,
+    required this.registerationn,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -28,13 +28,13 @@ class Tournament {
       id: json["id"] ?? "",
       name: json["Name"] ?? "",
       location: json["Location"] ?? "",
-      sports: json["Sportss"] ?? "",   // ✅ added
+      sports: json["Sports"] ?? "",   // ✅ added
       startDate: json["StartDate"] ?? "",
       endDate: json["EndDate"] ?? "",
       totalTeams: json["TotalTeam"] ?? 0,
-      registeredTeams: json["registeredTeam"] ?? 0,
-      requiredPlayer: json["requiredPlayers"] ?? 0,
-      registeration: json["registeration"] ?? "",
+      registeredTeams: json["RegisteredTeam"] ?? 0,
+      requiredPlayer: json["RequiredPlayers"] ?? 0,
+      registeration: json["Registeration"] ?? "",
     );
   }
 }
