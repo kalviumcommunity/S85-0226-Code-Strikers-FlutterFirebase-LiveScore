@@ -21,7 +21,7 @@ class ResponsiveLayout extends StatelessWidget {
             Expanded(
               child: buildPanel(
                 title: "Live Matches",
-                content: "⚽ Team A vs Team B\nScore: 2 - 1",
+                content: "⚽ Team A vs Team B\nScore: 2-1",
                 color: Colors.lightBlueAccent,
               ),
             ),
@@ -30,7 +30,7 @@ class ResponsiveLayout extends StatelessWidget {
               child: buildPanel(
                 title: "Top Player Stats",
                 content:
-                "🏏 Player: Rahul\nRuns: 85\nWickets: 2",
+                "🏏 Player: Rahul\nRuns: 85\nWicket: 2",
                 color: Colors.greenAccent,
               ),
             ),
@@ -40,7 +40,7 @@ class ResponsiveLayout extends StatelessWidget {
           children: [
             Expanded(
               child: buildPanel(
-                title: "Live Matches",
+                title: "Live Matche",
                 content:
                 "⚽ Team A vs Team B\nScore: 2 - 1",
                 color: Colors.lightBlueAccent,
