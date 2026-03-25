@@ -17,7 +17,7 @@ class ScrollableViews extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.all(12),
               child: Text(
-                "ListView Example",
+                "ListView Examples",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -58,7 +58,7 @@ class ScrollableViews extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.all(12),
               child: Text(
-                "GridView Example",
+                "GridView Examples",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
