@@ -38,7 +38,7 @@ class AuthService {
 
     return {
       "success": false,
-      "message": "Invalid or expired OTP"
+      "message": "Invalid or Expired OTP"
     };
   }
 
@@ -59,7 +59,7 @@ class AuthService {
 
     return {
       "success": false,
-      "message": "Failed to resend OTP"
+      "message": "Failed to Resend OTP"
     };
   }
 
@@ -121,12 +121,12 @@ class AuthService {
 
     return {
       "success": false,
-      "message": "Signup failed",
+      "message": "Signup Failed",
     };
   }
   static Future<Map<String, dynamic>> getPlayerStats() async {
     if (userId == null) {
-      return {"success": false, "message": "User ID not found"};
+      return {"success": false, "message": "User ID not Found"};
     }
 
     final url = "$baseUrl/auth/player/$userId/cricket-stats";
