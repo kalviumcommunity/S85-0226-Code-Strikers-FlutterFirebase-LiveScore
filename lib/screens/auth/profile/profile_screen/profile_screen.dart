@@ -32,17 +32,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> loadProfile() async {
     final meResponse = await AuthService.getMe();
+
     if (meResponse["success"]) {
       user = meResponse["user"];
-      if (AuthService.role == "PLAYER" || AuthService.role == "ROLE_PLAYER") {
-        final statsResponse = await AuthService.getPlayerStats();
-        if (statsResponse["success"]) {
-          stats = statsResponse["stats"];
-        }
+
+      final role = AuthService.role;
+
+      Map<String, dynamic>? statsResponse;
+
+      if (role == "PLAYER" || role == "ROLE_PLAYER") {
+        statsResponse = await AuthService.getPlayerStats();
+      }
+      else if (role == "TEAM_LEADER") {
+        statsResponse = await AuthService.getTeamLeaderStats();
+      }
+      else if (role == "USER" || role == "ROLE_USER") {
+        statsResponse = await AuthService.getUserStats();
+      }
+      else if (role == "ADMIN" || role == "ROLE_ADMIN") {
+        statsResponse = await AuthService.getAdminStats();
+      }
+
+      if (statsResponse != null && statsResponse["success"]) {
+        stats = statsResponse["stats"];
       }
     }
+
     if (!mounted) return;
     setState(() => loading = false);
+  }
+  Widget _buildTeamLeaderStats() {
+    final items = [
+      {"l": "TEAM", "v": stats!["teamName"] ?? "-", "i": Icons.group},
+      {"l": "PLAYERS", "v": stats!["currentPlayers"].toString(), "i": Icons.people},
+      {"l": "MATCHES", "v": stats!["totalMatches"].toString(), "i": Icons.sports},
+      {"l": "WINS", "v": stats!["wins"].toString(), "i": Icons.emoji_events},
+      {"l": "LOSSES", "v": stats!["losses"].toString(), "i": Icons.close},
+      {"l": "DRAWS", "v": stats!["draws"].toString(), "i": Icons.horizontal_rule},
+    ];
+
+    return _buildGenericGrid(items);
+  }
+  Widget _buildUserStats() {
+    final items = [
+      {"l": "AVAILABLE TEAMS", "v": stats!["availableTeams"].toString(), "i": Icons.group},
+      {"l": "TOURNAMENTS", "v": stats!["openTournaments"].toString(), "i": Icons.emoji_events},
+      {"l": "MATCHES", "v": stats!["upcomingMatches"].toString(), "i": Icons.sports},
+      {"l": "REQUESTS", "v": stats!["pendingTeamRequests"].toString(), "i": Icons.mail},
+      {"l": "NOTIFICATIONS", "v": stats!["unreadNotifications"].toString(), "i": Icons.notifications},
+    ];
+
+    return _buildGenericGrid(items);
+  }
+  Widget _buildAdminStats() {
+    final items = [
+      {"l": "USERS", "v": stats!["totalUsers"].toString(), "i": Icons.people},
+      {"l": "TEAMS", "v": stats!["totalTeams"].toString(), "i": Icons.group_work},
+      {"l": "MATCHES", "v": stats!["totalMatches"].toString(), "i": Icons.sports},
+      {"l": "LIVE", "v": stats!["liveMatches"].toString(), "i": Icons.wifi},
+      {"l": "TOURNAMENTS", "v": stats!["totalTournaments"].toString(), "i": Icons.emoji_events},
+      {"l": "REQUESTS", "v": stats!["pendingJoinRequests"].toString(), "i": Icons.pending},
+    ];
+
+    return _buildGenericGrid(items);
+  }
+  Widget _buildGenericGrid(List<Map<String, dynamic>> items) {
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.4,
+      ),
+      delegate: SliverChildBuilderDelegate(
+            (context, index) {
+          final item = items[index];
+          return _statCard(
+            item['l'],
+            item['v'],
+            item['i'],
+          );
+        },
+        childCount: items.length,
+      ),
+    );
+  }
+  Widget _buildPlayerStats() {
+    return _buildSliverStatsGrid();
+  }
+
+  Widget _buildRoleBasedStats() {
+    final role = AuthService.role;
+
+    if (role == "PLAYER" || role == "ROLE_PLAYER") {
+      return _buildPlayerStats();
+    } else if (role == "TEAM_LEADER") {
+      return _buildTeamLeaderStats();
+    } else if (role == "USER" || role == "ROLE_USER") {
+      return _buildUserStats();
+    } else if (role == "ADMIN" || role == "ROLE_ADMIN") {
+      return _buildAdminStats();
+    }
+
+    return const SliverToBoxAdapter(child: Text("No stats available"));
   }
 
   @override
@@ -91,9 +183,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (stats != null)
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: _buildSliverStatsGrid(),
+                  sliver: _buildRoleBasedStats(),
                 ),
-
               // Bottom Spacer for clean finish
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],

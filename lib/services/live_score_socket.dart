@@ -7,7 +7,7 @@ class LiveScoreSocket {
   StompClient? _client;
 
   static const String _wsUrl =
-      "https://livescorebackend-production.up.railway.app/ws";
+      "https://livescore-backend-1otr.onrender.com/ws";
 
   void connect({
     required String tournamentId,

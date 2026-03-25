@@ -44,19 +44,21 @@ class _LiveScoreScreenState extends State<LiveScoreScreen>
   Future<void> _fetchInitialData() async {
     try {
       final res = await http.get(Uri.parse(
-          "https://livescorebackend-production.up.railway.app/live/${widget.tournamentId}"));
+          "https://livescore-backend-1otr.onrender.com/live/${widget.tournamentId}"));
+
+      print("API RESPONSE: ${res.body}");
+
       if (res.statusCode == 200) {
         List list = json.decode(res.body);
-        final match = list.firstWhere((m) => m["matchId"] == widget.matchId, orElse: () => null);
-        if (match != null && mounted) {
-          setState(() => live = Map<String, dynamic>.from(match));
+
+        if (list.isNotEmpty && mounted) {
+          setState(() => live = Map<String, dynamic>.from(list[0]));
         }
       }
     } catch (e) {
       debugPrint("Initial fetch error: $e");
     }
   }
-
   void _connectSocket() {
     socket.connect(
       tournamentId: widget.tournamentId,

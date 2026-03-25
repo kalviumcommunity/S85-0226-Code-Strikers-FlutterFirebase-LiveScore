@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for input formatters
 import '../../services/auth_service.dart';
 import '../../theme/auth_theme.dart';
 import '../../theme/theme_controller.dart';
@@ -14,7 +15,7 @@ class OtpVerifyScreen extends StatefulWidget {
     super.key,
     required this.email,
     required this.password,
-    required this.themeController
+    required this.themeController,
   });
 
   @override
@@ -22,34 +23,33 @@ class OtpVerifyScreen extends StatefulWidget {
 }
 
 class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
+  // Using a single controller but you can also use PinCodeTextField packages
   final otpController = TextEditingController();
   bool loading = false;
 
   final Color neonCyan = const Color(0xFF22D3EE);
   final Color royalPurple = const Color(0xFF6366F1);
+  final Color darkBg = const Color(0xFF020617);
 
   void _show(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: royalPurple,
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+      ),
+    );
   }
-
-  /* ================= VERIFY OTP ================= */
 
   Future<void> _verifyOtp() async {
     final otp = otpController.text.trim();
-
-    if (otp.isEmpty) {
-      _show("Enter OTP");
+    if (otp.length < 4) { // Basic length check
+      _show("Please enter the full code");
       return;
     }
 
     setState(() => loading = true);
-
-    final res = await AuthService.verifySignupOtp(
-      email: widget.email,
-      otp: otp,
-    );
-
+    final res = await AuthService.verifySignupOtp(email: widget.email, otp: otp);
     setState(() => loading = false);
 
     if (!res["success"]) {
@@ -57,35 +57,15 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       return;
     }
 
-    /// ⭐ auto login after OTP
-    await AuthService.login(
-      email: widget.email,
-      password: widget.password,
-    );
-
+    await AuthService.login(email: widget.email, password: widget.password);
     await AuthService.getMe();
 
     if (!mounted) return;
-
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => LoginScreen(
-          themeController: widget.themeController, // ⭐ pass
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => LoginScreen(themeController: widget.themeController)),
           (_) => false,
     );
-  }
-
-  /* ================= RESEND OTP ================= */
-
-  Future<void> _resendOtp() async {
-    final res = await AuthService.resendSignupOtp(
-      email: widget.email,
-    );
-
-    _show(res["success"] ? "OTP resent" : "Failed to resend OTP");
   }
 
   @override
@@ -93,141 +73,182 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
     final dark = AuthTheme.isDark(context);
 
     return Scaffold(
-      backgroundColor: dark ? const Color(0xFF020617) : Colors.white,
+      backgroundColor: dark ? darkBg : Colors.grey[50],
       body: Stack(
         children: [
-          _bg(dark),
+          _buildBackgroundBlur(dark),
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 60),
 
+                  // Top Icon/Graphic
+                  _buildHeaderIcon(),
+
+                  const SizedBox(height: 40),
                   Text(
-                    "VERIFY OTP",
+                    "Verification Code",
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.w900,
-                      color: dark ? Colors.white : Colors.black,
+                      color: dark ? Colors.white : Colors.black87,
+                      letterSpacing: -0.5,
                     ),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  Text(
-                    "Code sent to ${widget.email}",
-                    style: const TextStyle(color: Colors.white38),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  _otpField(dark),
-
-                  const SizedBox(height: 30),
-
-                  _verifyButton(),
-
-                  const SizedBox(height: 20),
-
-                  TextButton(
-                    onPressed: _resendOtp,
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      "Resend OTP",
+                      "We have sent a 6-digit code to\n${widget.email}",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: neonCyan,
-                        fontWeight: FontWeight.bold,
+                        color: dark ? Colors.white54 : Colors.black54,
+                        fontSize: 15,
+                        height: 1.5,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 50),
+
+                  // The Interactive OTP Field
+                  _buildModernOtpInput(dark),
+
+                  const SizedBox(height: 40),
+                  _buildVerifyButton(),
+
+                  const SizedBox(height: 24),
+                  _buildResendSection(dark),
                 ],
               ),
             ),
           ),
+          if (Navigator.canPop(context))
+            SafeArea(child: BackButton(color: dark ? Colors.white : Colors.black)),
         ],
       ),
     );
   }
 
-  Widget _otpField(bool dark) {
+  Widget _buildHeaderIcon() {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          colors: [royalPurple.withOpacity(0.4), neonCyan.withOpacity(0.4)],
-        ),
+        shape: BoxShape.circle,
+        color: royalPurple.withOpacity(0.1),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: dark ? Colors.black.withOpacity(0.5) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: TextField(
-          controller: otpController,
-          keyboardType: TextInputType.number,
-          style: TextStyle(
-            fontSize: 22,
-            letterSpacing: 8,
-            color: dark ? Colors.white : Colors.black,
-          ),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            hintText: "------",
-          ),
-        ),
-      ),
+      child: Icon(Icons.mark_email_read_outlined, size: 80, color: neonCyan),
     );
   }
 
-  Widget _verifyButton() {
-    return ElevatedButton(
-      onPressed: loading ? null : _verifyOtp,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-        backgroundColor: neonCyan,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-      ),
-      child: loading
-          ? const SizedBox(
-        height: 18,
-        width: 18,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      )
-          : const Text(
-        "VERIFY",
+  Widget _buildModernOtpInput(bool dark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: otpController,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(6),
+        ],
+        textAlign: TextAlign.center,
         style: TextStyle(
+          fontSize: 32,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+          letterSpacing: 25, // Creates the visual "box" separation
+          color: neonCyan,
+        ),
+        decoration: InputDecoration(
+          hintText: "000000",
+          hintStyle: TextStyle(color: dark ? Colors.white10 : Colors.black12),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: royalPurple.withOpacity(0.3), width: 2),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: neonCyan, width: 2),
+          ),
         ),
       ),
     );
   }
 
-  Widget _bg(bool dark) {
-    if (!dark) return const SizedBox.shrink();
+  Widget _buildVerifyButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(colors: [royalPurple, royalPurple.withBlue(255)]),
+        boxShadow: [
+          BoxShadow(
+            color: royalPurple.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: loading ? null : _verifyOtp,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        child: loading
+            ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text(
+          "VERIFY & PROCEED",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: 1.1),
+        ),
+      ),
+    );
+  }
 
-    return Stack(
+  Widget _buildResendSection(bool dark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Positioned(top: -50, right: -50, child: _sphere(royalPurple)),
-        Positioned(bottom: 0, left: -50, child: _sphere(neonCyan)),
+        Text(
+          "Didn't receive code?",
+          style: TextStyle(color: dark ? Colors.white38 : Colors.black45),
+        ),
+        TextButton(
+          onPressed: _resendOtp,
+          child: Text(
+            "Resend Now",
+            style: TextStyle(color: neonCyan, fontWeight: FontWeight.bold),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _sphere(Color color) => Container(
-    width: 300,
-    height: 300,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: color.withOpacity(0.1),
-    ),
+  Widget _buildBackgroundBlur(bool dark) {
+    if (!dark) return const SizedBox.shrink();
+    return Stack(
+      children: [
+        Positioned(top: -100, right: -80, child: _blurSphere(royalPurple.withOpacity(0.15))),
+        Positioned(bottom: -50, left: -80, child: _blurSphere(neonCyan.withOpacity(0.15))),
+      ],
+    );
+  }
+
+  Widget _blurSphere(Color color) => Container(
+    width: 400,
+    height: 400,
+    decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+      filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
       child: Container(color: Colors.transparent),
     ),
   );
+
+  Future<void> _resendOtp() async {
+    setState(() => loading = true);
+    final res = await AuthService.resendSignupOtp(email: widget.email);
+    setState(() => loading = false);
+    _show(res["success"] ? "New code sent to your email!" : "Failed to resend. Try again.");
+  }
 }

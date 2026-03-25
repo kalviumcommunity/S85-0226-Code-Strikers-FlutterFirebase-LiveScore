@@ -48,7 +48,7 @@ class _LiveMatchesScreenState extends State<LiveMatchesScreen> {
     if (showLoading) setState(() => loading = true);
     try {
       final res = await http.get(
-          Uri.parse("https://livescorebackend-production.up.railway.app/live/${widget.tournamentId}")
+          Uri.parse("https://livescore-backend-1otr.onrender.com/live/${widget.tournamentId}")
       );
       if (res.statusCode == 200) {
         if (!mounted) return;

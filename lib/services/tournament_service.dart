@@ -5,7 +5,7 @@ import '../models/tournament.dart';
 import 'auth_service.dart';
 
 class TournamentService {
-  static const String baseUrl = "https://livescorebackend-production.up.railway.app";
+  static const String baseUrl = "https://livescore-backend-1otr.onrender.com";
 
   /// ===============================
   /// FETCH ALL TOURNAMENTS
