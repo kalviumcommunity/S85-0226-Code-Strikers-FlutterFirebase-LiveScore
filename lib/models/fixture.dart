@@ -27,7 +27,7 @@ class Fixture {
       teamAName: json["TeamAName"] ?? "TBD",
       teamBName: json["TeamBName"] ?? "TBD",
       round: json["Round"] ?? 1,
-      status: json["Status"] ?? "PENDING",
+      status: json["Status"] ?? "Pending",
 
       /// safe defaults
       scoreA: json["scoreA"] ?? 0,
