@@ -32,7 +32,7 @@ class Fixture {
       /// safe defaults
       scoreA: json["scoreA"] ?? 0,
       scoreB: json["scoreB"] ?? 0,
-      scheduledAt: json["scheduledAt"] ?? "Not scheduled",
+      scheduledAt: json["scheduledAt"] ?? "Not Scheduled",
     );
   }
 }

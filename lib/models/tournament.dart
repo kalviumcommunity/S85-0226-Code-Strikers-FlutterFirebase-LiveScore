@@ -34,7 +34,7 @@ class Tournament {
       totalTeams: json["TotalTeam"] ?? 0,
       registeredTeams: json["RegisteredTeam"] ?? 0,
       requiredPlayer: json["RequiredPlayers"] ?? 0,
-      registeration: json["Registeration"] ?? "",
+      registeration: json["Registration"] ?? "",
     );
   }
 }
