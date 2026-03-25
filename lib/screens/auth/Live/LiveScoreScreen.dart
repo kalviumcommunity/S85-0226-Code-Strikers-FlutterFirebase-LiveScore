@@ -33,7 +33,7 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
 
   void connectToSocket() {
     // Constructing the WS URL: ws://127.0.0.1:8080/live/live-score/tournId/matchId
-    final wsUrl = "ws://127.0.0.1:8080/live/live-score/${widget.tournamentId}/${widget.matchId}";
+    final wsUrl = "ws://livescore-backend-1otr.onrender.com/live/live-score/${widget.tournamentId}/${widget.matchId}";
 
     channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     setState(() => isConnected = true);

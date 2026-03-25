@@ -6,7 +6,7 @@ import '../models/team/team_join_request.dart';
 import 'auth_service.dart';
 
 class TeamService {
-  static const String baseUrl = "https://livescorebackend-production.up.railway.app";
+  static const String baseUrl = "https://livescore-backend-1otr.onrender.com";
 
   static Map<String, String> get _headers => {
     "Authorization": "Bearer ${AuthService.token}",

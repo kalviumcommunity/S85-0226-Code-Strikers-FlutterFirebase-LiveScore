@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String baseUrl = "https://livescorebackend-production.up.railway.app";
+  static const String baseUrl = "https://livescore-backend-1otr.onrender.com";
   static const String firebaseApiKey =
       "AIzaSyAvJo-TShqKa3cKR0-SvIIIfr8KNLYFwC4";
 
@@ -20,7 +20,42 @@ class AuthService {
   /* ================= LOGIN ================= */
   /* ================= VERIFY SIGNUP OTP ================= */
 
+/* ================= GET NOTIFICATIONS ================= */
 
+  static Future<List<dynamic>> getNotifications() async {
+    final url = "$baseUrl/auth/me/notifications";
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    print("NOTIFICATIONS STATUS = ${response.statusCode}");
+    print("NOTIFICATIONS BODY = ${response.body}");
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+
+    throw Exception("Failed to load notifications");
+  }
+
+/* ================= MARK AS READ ================= */
+
+  static Future<void> markNotificationRead(String id) async {
+    final url = "$baseUrl/auth/me/notifications/$id/read";
+
+    final response = await http.patch(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    print("MARK READ STATUS = ${response.statusCode}");
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to mark notification");
+    }
+  }
   static Future<Map<String, dynamic>> verifySignupOtp({
     required String email,
     required String otp,
@@ -147,6 +182,56 @@ class AuthService {
     return {"success": false, "message": "Failed to load stats"};
   }
 
+/* ================= TEAM LEADER STATS ================= */
+  static Future<Map<String, dynamic>> getTeamLeaderStats() async {
+    final url = "$baseUrl/auth/team-leader/stats";
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    print("TL STATS STATUS = ${response.statusCode}");
+    print("TL STATS BODY = ${response.body}");
+
+    if (response.statusCode == 200) {
+      return {"success": true, "stats": jsonDecode(response.body)};
+    }
+
+    return {"success": false};
+  }
+
+/* ================= USER STATS ================= */
+  static Future<Map<String, dynamic>> getUserStats() async {
+    final url = "$baseUrl/auth/user/stats";
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    if (response.statusCode == 200) {
+      return {"success": true, "stats": jsonDecode(response.body)};
+    }
+
+    return {"success": false};
+  }
+
+/* ================= ADMIN STATS ================= */
+  static Future<Map<String, dynamic>> getAdminStats() async {
+    final url = "$baseUrl/auth/admin/stats"; // ensure backend endpoint exists
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: authHeader,
+    );
+
+    if (response.statusCode == 200) {
+      return {"success": true, "stats": jsonDecode(response.body)};
+    }
+
+    return {"success": false};
+  }
 
 
   /* ================= GET ME ================= */
@@ -195,4 +280,5 @@ class AuthService {
   static bool isAdmin() =>
       role == "ADMIN" || role == "ROLE_ADMIN";
 }
+
 

@@ -9,6 +9,7 @@ import '../../../widgets/glow_bottom_nav.dart';
 import 'package:livescore/screens/auth/events/events_screen.dart';
 import 'package:livescore/screens/auth/teams/teams_screen.dart';
 import '../Live/LiveMatchesScreen.dart';
+import '../Notification.dart';
 import '../admin/create_tournament_screen.dart';
 import '../profile/profile_screen/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -116,6 +117,7 @@ class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
   final ThemeController themeController;
 
+
   const HomeScreen({super.key, this.user, required this.themeController});
 
   @override
@@ -123,7 +125,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List upcomingEvents = [];
+  bool loadingUpcoming = true;
   int index = 0;
+  int playerCount = 0;
   List tournaments = [];
   bool loadingTournaments = true;
 
@@ -141,6 +146,48 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(viewportFraction: 0.85, initialPage: 0);
     loadTournaments();
+    loadPlayerCount();
+    loadUpcomingEvents();
+  }
+  Future<void> loadUpcomingEvents() async {
+    try {
+      final res = await http.get(
+        Uri.parse("https://livescore-backend-1otr.onrender.com/live/upcoming"),
+      );
+
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+
+        if (!mounted) return;
+
+        setState(() {
+          upcomingEvents = data;
+          loadingUpcoming = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Upcoming Events Error: $e");
+    }
+  }
+  Future<void> loadPlayerCount() async {
+    try {
+      final res = await http.get(
+        Uri.parse("https://livescore-backend-1otr.onrender.com/auth/count/players"),
+
+      );
+
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+
+        if (!mounted) return;
+
+        setState(() {
+          playerCount = data["playerCount"] ?? 0;
+        });
+      }
+    } catch (e) {
+      debugPrint("Player Count Error: $e");
+    }
   }
 
   @override
@@ -154,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final res = await http.get(
         Uri.parse(
-            "https://livescorebackend-production.up.railway.app/get/tournament"),
+            "https://livescore-backend-1otr.onrender.com/get/tournament"),
       );
 
       if (res.statusCode == 200) {
@@ -310,22 +357,35 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          _iconButton(Icons.notifications_none_rounded),
+          _iconButton(
+            Icons.notifications_none_rounded,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationsScreen(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _iconButton(IconData icon) {
-    return Container(
-      height: 45,
-      width: 45,
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+  Widget _iconButton(IconData icon, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 45,
+        width: 45,
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Icon(icon, color: accentCyan),
       ),
-      child: Icon(icon, color: accentCyan),
     );
   }
 
@@ -474,9 +534,9 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(left: 20),
       child: Row(
         children: [
-          _statItem("🏆", "12 Active", "Tournaments"),
-          _statItem("🏃", "450+", "Players"),
-          _statItem("📍", "8 Venues", "Registered"),
+          _statItem("🏆", "${tournaments.length}", "Tournaments"),
+          _statItem("🏃", "$playerCount", "Players"),
+          _statItem("📍", "${tournaments.length}", "Registered"),
         ],
       ),
     );
@@ -511,12 +571,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUpcomingList() {
+    if (loadingUpcoming) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (upcomingEvents.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          "No upcoming events",
+          style: TextStyle(color: Colors.white.withOpacity(0.5)),
+        ),
+      );
+    }
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      itemCount: 3,
+      itemCount: upcomingEvents.length,
       itemBuilder: (context, index) {
+        final event = upcomingEvents[index];
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -528,23 +607,33 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             children: [
               CircleAvatar(
-                  backgroundColor: accentCyan.withOpacity(0.1),
-                  child: Icon(Icons.event, color: accentCyan, size: 20)),
+                backgroundColor: accentCyan.withOpacity(0.1),
+                child: Icon(Icons.event, color: accentCyan, size: 20),
+              ),
               const SizedBox(width: 16),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Weekend Championship",
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text("Starts in 2 days • Kalam Block",
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 12)),
+                    Text(
+                      event["name"] ?? "Event",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "${event["startTime"] ?? "Soon"} • ${event["location"] ?? "Ground"}",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
+
               const Icon(Icons.arrow_forward_ios_rounded,
                   color: Colors.white24, size: 14),
             ],
