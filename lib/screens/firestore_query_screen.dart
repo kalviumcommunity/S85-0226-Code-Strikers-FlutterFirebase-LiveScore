@@ -8,7 +8,7 @@ class FirestoreQueryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Filtered Tasks"),
+        title: const Text("Filtered Task"),
       ),
 
       body: StreamBuilder<QuerySnapshot>(
@@ -33,7 +33,7 @@ class FirestoreQueryScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No tasks found"));
+            return const Center(child: Text("No Tasks Found"));
           }
 
           final tasks = snapshot.data!.docs;
