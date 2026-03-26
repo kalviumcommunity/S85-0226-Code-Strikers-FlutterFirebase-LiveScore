@@ -32,8 +32,8 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
   }
 
   void connectToSocket() {
-    // Constructing the WS URL: ws://127.0.0.1:8080/live/live-score/tournId/matchId
-    final wsUrl = "ws://livescore-backend-1otr.onrender.com/live/live-score/${widget.tournamentId}/${widget.matchId}";
+    final wsUrl =
+        "ws:https://livescore-backend-1otr.onrender.com/${widget.tournamentId}/${widget.matchId}";
 
     channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     setState(() => isConnected = true);
@@ -52,17 +52,47 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Live Scorecard", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Live Scorecard",
+            style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: StreamBuilder(
         stream: channel.stream,
         builder: (context, snapshot) {
           if (snapshot.hasError) return _errorState("Connection Error");
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
 
-          // Parsing the real-time JSON from WebSocket
           final data = json.decode(snapshot.data.toString());
-          final match = data is List ? data[0] : data; // Handle if list or object
+          Map match;
+
+          if (data is List) {
+            match = data.firstWhere(
+                  (m) => m["matchId"].toString() == widget.matchId,
+              orElse: () => data[0], // fallback
+            );
+          } else {
+            match = data;
+          }
+
+          /// 🔥 FIX: Detect which team is batting
+          bool isTeamABatting = (match["teamAPlayers"] ?? [])
+              .contains(match["strikerName"]);
+
+          final battingList = isTeamABatting
+              ? match["battingA"]
+              : match["battingB"];
+
+          final battingTeamName = isTeamABatting
+              ? match["teamAName"]
+              : match["teamBName"];
+
+          final bowlingList = isTeamABatting
+              ? match["bowlingB"]
+              : match["bowlingA"];
+
+          final bowlingTeamName = isTeamABatting
+              ? match["teamBName"]
+              : match["teamAName"];
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -70,9 +100,16 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
               children: [
                 _buildHeaderScore(match),
                 const SizedBox(height: 20),
-                _buildBattingTable(match["battingA"] ?? [], "Batting: ${match["teamAName"]}"),
+
+                /// ✅ Dynamic Batting (FIXED)
+                _buildBattingTable(
+                    battingList ?? [], "Batting: $battingTeamName"),
+
                 const SizedBox(height: 20),
-                _buildBowlingTable(match["bowlingB"] ?? [], "Bowling: ${match["teamBName"]}"),
+
+                /// ✅ Dynamic Bowling (FIXED)
+                _buildBowlingTable(
+                    bowlingList ?? [], "Bowling: $bowlingTeamName"),
               ],
             ),
           );
@@ -91,18 +128,40 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
       ),
       child: Column(
         children: [
-          Text(m["status"] ?? "LIVE", style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+          Text(
+            m["status"] ?? "LIVE",
+            style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
+          ),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _teamHeader(m["teamAName"], m["scoreA"], m["wicketsA"], m["oversA"]),
-              const Text("VS", style: TextStyle(color: Colors.white24, fontWeight: FontWeight.bold)),
-              _teamHeader(m["teamBName"], m["scoreB"], m["wicketsB"], m["oversB"]),
+              _teamHeader(
+                  m["teamAName"], m["scoreA"], m["wicketsA"], m["oversA"]),
+              const Text("VS",
+                  style: TextStyle(
+                      color: Colors.white24, fontWeight: FontWeight.bold)),
+              _teamHeader(
+                  m["teamBName"], m["scoreB"], m["wicketsB"], m["oversB"]),
             ],
           ),
           const Divider(height: 30, color: Colors.white10),
-          Text("Current Bowler: ${m["bowlerName"]}", style: TextStyle(color: accentCyan, fontSize: 13)),
+          Text(
+            "Striker: ${m["strikerName"]}",
+            style: TextStyle(color: accentCyan, fontSize: 13),
+          ),
+          Text(
+            "Non-Striker: ${m["nonStrikerName"]}",
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            "Bowler: ${m["bowlerName"]}",
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -111,9 +170,16 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
   Widget _teamHeader(name, score, wickets, overs) {
     return Column(
       children: [
-        Text(name.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        Text("$score/$wickets", style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
-        Text("$overs Overs", style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(name.toString(),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
+        Text("$score/$wickets",
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w900)),
+        Text("$overs Overs",
+            style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ],
     );
   }
@@ -122,19 +188,24 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white70, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Table(
-          columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1)},
+          columnWidths: const {
+            0: FlexColumnWidth(3),
+            1: FlexColumnWidth(1),
+            2: FlexColumnWidth(1)
+          },
           children: [
             TableRow(children: [_th("Player"), _th("R"), _th("B")]),
-            ...players.map((p) => TableRow(
-                children: [
-                  _td(p["playerName"], isMain: p["out"] == false),
-                  _td(p["runs"].toString()),
-                  _td(p["balls"].toString()),
-                ]
-            )).toList(),
+            ...players.map((p) => TableRow(children: [
+              _td(p["playerName"],
+                  isMain: p["out"] == false),
+              _td(p["runs"].toString()),
+              _td(p["balls"].toString()),
+            ]))
           ],
         ),
       ],
@@ -145,27 +216,41 @@ class _LiveScoreScreenState extends State<LiveScoreScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white70, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Table(
-          columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1)},
+          columnWidths: const {
+            0: FlexColumnWidth(3),
+            1: FlexColumnWidth(1),
+            2: FlexColumnWidth(1)
+          },
           children: [
             TableRow(children: [_th("Bowler"), _th("W"), _th("R")]),
-            ...bowlers.map((b) => TableRow(
-                children: [
-                  _td(b["playerName"]),
-                  _td(b["wickets"].toString()),
-                  _td(b["runs"].toString()),
-                ]
-            )).toList(),
+            ...bowlers.map((b) => TableRow(children: [
+              _td(b["playerName"]),
+              _td(b["wickets"].toString()),
+              _td(b["runs"].toString()),
+            ]))
           ],
         ),
       ],
     );
   }
 
-  Widget _th(String text) => Padding(padding: const EdgeInsets.all(8), child: Text(text, style: const TextStyle(color: Colors.white38, fontSize: 12)));
-  Widget _td(String text, {bool isMain = false}) => Padding(padding: const EdgeInsets.all(8), child: Text(text, style: TextStyle(color: isMain ? Colors.orangeAccent : Colors.white, fontSize: 13)));
+  Widget _th(String text) => Padding(
+      padding: const EdgeInsets.all(8),
+      child: Text(text,
+          style: const TextStyle(color: Colors.white38, fontSize: 12)));
 
-  Widget _errorState(String msg) => Center(child: Text(msg, style: const TextStyle(color: Colors.white54)));
+  Widget _td(String text, {bool isMain = false}) => Padding(
+      padding: const EdgeInsets.all(8),
+      child: Text(text,
+          style: TextStyle(
+              color: isMain ? Colors.orangeAccent : Colors.white,
+              fontSize: 13)));
+
+  Widget _errorState(String msg) =>
+      Center(child: Text(msg, style: const TextStyle(color: Colors.white54)));
 }
